@@ -39,13 +39,14 @@ export default function LoginPage({
   // Form fields (pre-filled with currentUser if upgrading/registering as business)
   const [email, setEmail] = useState(currentUser?.email || '');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [fullName, setFullName] = useState(currentUser?.full_name || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
   const [companyName, setCompanyName] = useState(currentUser?.company_name || '');
   const [gstin, setGstin] = useState(currentUser?.gstin || '');
   const [address, setAddress] = useState(currentUser?.address || '');
 
-  // OTP Verification state (used strictly during Registration)
+  // OTP Verification state (used strictly during Registration and Password Reset)
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpSending, setOtpSending] = useState(false);
@@ -53,6 +54,68 @@ export default function LoginPage({
   const [otpVerifying, setOtpVerifying] = useState(false);
   const [otpPreview, setOtpPreview] = useState('');
   const [otpCountdown, setOtpCountdown] = useState(0);
+
+  // Send password reset code
+  const handleForgotPasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!email || !email.includes('@')) {
+      setErrorMsg('Please enter your registered email address.');
+      return;
+    }
+    setErrorMsg('');
+    setOtpSending(true);
+    try {
+      const res = await api.forgotPassword(email.trim().toLowerCase());
+      if (res.error) {
+        setErrorMsg(res.error);
+        soundEffects.playClick();
+      } else {
+        setOtpSent(true);
+        soundEffects.playSuccessChime();
+        setSuccessMsg(res.message || `Password reset code sent to ${email}`);
+        if (res.otp_preview) {
+          setOtpPreview(res.otp_preview);
+        }
+      }
+    } catch (err) {
+      setErrorMsg('Unable to dispatch reset email. Please verify backend connection.');
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  // Submit new password with reset code
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!otp || otp.trim().length !== 6) {
+      setErrorMsg('Please enter the 6-digit verification code sent to your email.');
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      setErrorMsg('New password must be at least 6 characters long.');
+      return;
+    }
+    setErrorMsg('');
+    setLoading(true);
+    try {
+      const res = await api.resetPassword(email.trim().toLowerCase(), otp.trim(), newPassword);
+      if (res.error) {
+        setErrorMsg(res.error);
+        soundEffects.playClick();
+      } else {
+        soundEffects.playSuccessChime();
+        setSuccessMsg(res.message || 'Password reset successfully! You can now sign in.');
+        setMode('login');
+        setPassword(newPassword);
+        setOtp('');
+        setOtpSent(false);
+      }
+    } catch (err) {
+      setErrorMsg('Failed to reset password. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Send OTP to email during registration
   const handleSendOtp = async () => {
@@ -263,7 +326,9 @@ export default function LoginPage({
             </div>
           </div>
           <h2 className="font-serif text-2xl font-bold text-emerald-950 tracking-tight">
-            {mode === 'login' 
+            {mode === 'forgot_password'
+              ? 'Reset Your Account Password'
+              : mode === 'login' 
               ? 'Sign in to Your Account' 
               : userType === 'corporate' && currentUser
               ? 'Register Your Business Account'
@@ -272,7 +337,9 @@ export default function LoginPage({
               : 'Create Your Botanical Account'}
           </h2>
           <p className="text-xs text-stone-500">
-            {mode === 'login' 
+            {mode === 'forgot_password'
+              ? 'Enter your registered email address to receive a secure 6-digit password reset code.'
+              : mode === 'login' 
               ? 'Access bespoke fresh lily bouquets, corporate staging, and express delivery.' 
               : userType === 'corporate'
               ? 'Join Green Nest Bloom as a verified corporate partner for wholesale rates, event staging & GST tax invoicing.'
@@ -370,8 +437,15 @@ export default function LoginPage({
                 <label className="font-bold text-stone-700">Password</label>
                 <button
                   type="button"
-                  onClick={() => alert('Password reset instructions will be sent to your registered email.')}
-                  className="text-[11px] text-emerald-700 hover:underline font-semibold"
+                  onClick={() => {
+                    soundEffects.playClick();
+                    setMode('forgot_password');
+                    setErrorMsg('');
+                    setSuccessMsg('');
+                    setOtpSent(false);
+                    setOtp('');
+                  }}
+                  className="text-[11px] text-emerald-700 hover:underline font-semibold cursor-pointer"
                 >
                   Forgot password?
                 </button>
@@ -405,6 +479,135 @@ export default function LoginPage({
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
+        )}
+
+        {/* FORM: FORGOT PASSWORD */}
+        {mode === 'forgot_password' && (
+          <div className="space-y-4 text-xs animate-in fade-in duration-200">
+            <div className="flex items-center justify-between pb-1.5 border-b border-stone-200">
+              <span className="font-bold text-stone-700">Account Recovery</span>
+              <button
+                type="button"
+                onClick={() => {
+                  soundEffects.playClick();
+                  setMode('login');
+                  setErrorMsg('');
+                  setSuccessMsg('');
+                }}
+                className="text-[11px] text-emerald-800 hover:underline font-semibold flex items-center space-x-1 cursor-pointer"
+              >
+                <ArrowLeft className="w-3 h-3" />
+                <span>Back to Sign In</span>
+              </button>
+            </div>
+
+            {!otpSent ? (
+              <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">Enter Your Registered Email Address</label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@domain.com"
+                      required
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-800 font-medium"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={otpSending || !email}
+                  className="w-full py-3 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shadow-md shadow-emerald-900/10 transition-all flex items-center justify-center space-x-2 disabled:opacity-60 cursor-pointer"
+                >
+                  {otpSending ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Sending Reset Code to Your Email...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Send 6-Digit Reset Code to Email</span>
+                      <Send className="w-3.5 h-3.5" />
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+                <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2">
+                  <div className="flex items-center justify-between text-stone-700">
+                    <label className="font-bold flex items-center space-x-1.5">
+                      <KeyRound className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>Enter 6-Digit Reset Code</span>
+                    </label>
+                    <span className="text-[10px] text-stone-500">Sent to {email}</span>
+                  </div>
+
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="6-digit code"
+                    required
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-900 font-mono tracking-widest text-center text-sm font-bold bg-white"
+                  />
+
+                  {otpPreview && (
+                    <div className="flex items-center justify-between text-[11px] bg-amber-50 text-amber-800 px-3 py-1.5 rounded-lg border border-amber-200">
+                      <span>Dev / Simulation Code: <strong className="font-mono text-xs tracking-wider">{otpPreview}</strong></span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtp(otpPreview);
+                          soundEffects.playClick();
+                        }}
+                        className="text-amber-900 font-semibold underline hover:text-amber-700 ml-2 cursor-pointer"
+                      >
+                        Autofill
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">Enter New Password</label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Minimum 6 characters"
+                      required
+                      minLength={6}
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-800 font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 p-1"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || !otp || otp.length !== 6 || !newPassword || newPassword.length < 6}
+                  className="w-full py-3 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shadow-md shadow-emerald-900/10 transition-all flex items-center justify-center space-x-2 disabled:opacity-60 cursor-pointer"
+                >
+                  <span>{loading ? 'Updating Password...' : 'Reset Password & Sign In'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+            )}
+          </div>
         )}
 
         {/* FORM: CREATE ACCOUNT (REGISTER) */}

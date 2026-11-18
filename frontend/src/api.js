@@ -42,6 +42,22 @@ export const api = {
     });
     return res.json();
   },
+  forgotPassword: async (email) => {
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    return res.json();
+  },
+  resetPassword: async (email, otp, newPassword) => {
+    const res = await fetch(`${API_BASE}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp, new_password: newPassword })
+    });
+    return res.json();
+  },
   getCurrentUser: async (email) => {
     const res = await fetch(`${API_BASE}/auth/me?email=${encodeURIComponent(email || '')}`);
     return res.json();

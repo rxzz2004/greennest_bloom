@@ -323,6 +323,82 @@ def login_with_otp():
         "is_singleton_admin_active": user.user_type == "admin"
     }), 200
 
+@auth_bp.route("/forgot-password", methods=["POST"])
+def forgot_password():
+    """Generates a 6-digit password reset OTP and emails it to the user"""
+    data = request.get_json() or {}
+    email = data.get("email", "").strip().lower()
+
+    if not email:
+        return jsonify({"error": "Please enter your registered email address."}), 400
+
+    user = User.query.filter(db.func.lower(User.email) == email).first()
+    if not user:
+        return jsonify({"error": "No account found with this email address. Please register first."}), 404
+
+    otp_code = f"{random.randint(100000, 999999)}"
+    expires_at = datetime.utcnow() + timedelta(minutes=10)
+
+    try:
+        EmailOTP.query.filter_by(email=email, is_used=False).delete()
+        otp_record = EmailOTP(
+            email=email,
+            otp_code=otp_code,
+            expires_at=expires_at,
+            is_used=False
+        )
+        db.session.add(otp_record)
+        db.session.commit()
+
+        email_sent = AlertService.trigger_password_reset_email(
+            recipient_email=email,
+            otp_code=otp_code,
+            full_name=user.full_name
+        )
+
+        is_simulated = Config.SIMULATE_SMTP or not Config.MAIL_PASSWORD
+        return jsonify({
+            "status": "success",
+            "message": f"Password reset code sent to {email}. Please check your inbox and spam folder.",
+            "simulated": is_simulated,
+            "otp_preview": otp_code if (is_simulated or current_app.config.get("TESTING")) else None
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to send password reset code: {str(e)}"}), 500
+
+@auth_bp.route("/reset-password", methods=["POST"])
+def reset_password():
+    """Resets user password after verifying 6-digit OTP"""
+    data = request.get_json() or {}
+    email = data.get("email", "").strip().lower()
+    otp = str(data.get("otp", "")).strip()
+    new_password = data.get("new_password", "").strip()
+
+    if not email or not otp or not new_password:
+        return jsonify({"error": "Email, reset code, and new password are required."}), 400
+
+    if len(new_password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters long."}), 400
+
+    user = User.query.filter(db.func.lower(User.email) == email).first()
+    if not user:
+        return jsonify({"error": "No account found with this email address."}), 404
+
+    otp_record = EmailOTP.query.filter_by(email=email, is_used=False).order_by(EmailOTP.created_at.desc()).first()
+    if not otp_record or not otp_record.is_valid(otp):
+        return jsonify({"error": "Invalid or expired reset code. Please request a new one."}), 400
+
+    otp_record.is_used = True
+    user.set_password(new_password)
+    db.session.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "Password updated successfully! You can now sign in with your new password."
+    }), 200
+
 @auth_bp.route("/me", methods=["GET"])
 def get_current_user():
     # In this demonstration environment, we pass email via query or auth header

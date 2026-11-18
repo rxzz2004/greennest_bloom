@@ -91,6 +91,31 @@ class AlertService:
         return cls.send_alert("registration_otp", subject, body, recipient_email=recipient_email)
 
     @classmethod
+    def trigger_password_reset_email(cls, recipient_email: str, otp_code: str, full_name: str = "Valued Customer"):
+        subject = f"Reset Your Password: {otp_code} — Green Nest Bloom"
+        body = f"""
+        <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 560px; margin: auto; padding: 32px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; color: #0f172a;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <h1 style="color: #064e3b; font-size: 24px; font-weight: 800; margin: 0; letter-spacing: -0.5px;">Green Nest Bloom</h1>
+                <p style="color: #0f766e; font-size: 13px; font-weight: 600; margin: 4px 0 0 0;">Botanical Commerce & Cold-Chain Floriculture</p>
+            </div>
+            <div style="background: #f8fafc; border-radius: 12px; padding: 24px; margin-bottom: 24px; border: 1px solid #cbd5e1;">
+                <h2 style="font-size: 18px; font-weight: 700; color: #0f172a; margin-top: 0;">Password Reset Request</h2>
+                <p style="font-size: 14px; color: #475569; line-height: 1.5;">Hello <strong>{full_name}</strong>,</p>
+                <p style="font-size: 14px; color: #475569; line-height: 1.5;">We received a request to reset the password for your Green Nest Bloom account. Please use the 6-digit verification code below to reset your password:</p>
+                <div style="text-align: center; margin: 28px 0;">
+                    <div style="display: inline-block; background: #064e3b; color: #6ee7b7; font-size: 34px; font-weight: 900; letter-spacing: 8px; padding: 14px 32px; border-radius: 12px; font-family: monospace; border: 2px solid #059669;">
+                        {otp_code}
+                    </div>
+                </div>
+                <p style="font-size: 12px; color: #64748b; margin: 0; text-align: center;">This code will expire in <strong>10 minutes</strong>. If you did not request this, your account is still secure and you can ignore this email.</p>
+            </div>
+            <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;">Green Nest Bloom Botanical Security</p>
+        </div>
+        """
+        return cls.send_alert("password_reset", subject, body, recipient_email=recipient_email)
+
+    @classmethod
     def trigger_new_user_alert(cls, user_id: int, full_name: str, email: str, user_type: str, company_name: str = None, phone: str = None, gstin: str = None):
         user_type_label = "Corporate Wholesale Partner" if user_type == "corporate" else "Individual B2C Client"
         subject = f"New Client Registered: {full_name} ({user_type_label})"
