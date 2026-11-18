@@ -2,11 +2,19 @@ const API_BASE = '/api';
 
 export const api = {
   // Auth
-  sendOtp: async (email, fullName, userType) => {
+  sendOtp: async (email, fullName, userType, intent = 'register') => {
     const res = await fetch(`${API_BASE}/auth/send-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, full_name: fullName, user_type: userType })
+      body: JSON.stringify({ email, full_name: fullName, user_type: userType, intent })
+    });
+    return res.json();
+  },
+  loginWithOtp: async (email, otp) => {
+    const res = await fetch(`${API_BASE}/auth/login-otp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp })
     });
     return res.json();
   },

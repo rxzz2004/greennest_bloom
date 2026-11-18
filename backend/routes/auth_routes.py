@@ -25,11 +25,17 @@ def send_otp():
         return jsonify({"error": "Please provide a valid email address."}), 400
 
     user_type = data.get("user_type", "").strip().lower()
-    intent = data.get("intent", "").strip().lower()
+    intent = data.get("intent", "register").strip().lower()
 
     # Check if user already exists in database
     existing_user = User.query.filter(db.func.lower(User.email) == email).first()
-    if existing_user:
+    if intent in ["login", "signin", "otp_login"]:
+        if not existing_user:
+            return jsonify({
+                "error": "No registered account found with this email address. Please create an account first."
+            }), 404
+        full_name = existing_user.full_name
+    elif existing_user:
         # If an individual user is upgrading to a corporate business partner, permit OTP dispatch
         if existing_user.user_type == "individual" and (user_type == "corporate" or intent == "upgrade_corporate"):
             pass
@@ -264,6 +270,54 @@ def login():
 
     return jsonify({
         "message": "Login successful",
+        "token": token,
+        "user": user.to_dict(),
+        "is_singleton_admin_active": user.user_type == "admin"
+    }), 200
+
+@auth_bp.route("/login-otp", methods=["POST"])
+def login_with_otp():
+    """Authenticates an existing user via valid 6-digit email OTP"""
+    data = request.get_json() or {}
+    email = data.get("email", "").strip().lower()
+    otp = str(data.get("otp", "")).strip()
+
+    if not email or not otp:
+        return jsonify({"error": "Both email address and OTP code are required."}), 400
+
+    user = User.query.filter(db.func.lower(User.email) == email).first()
+    if not user:
+        return jsonify({"error": "No registered account found with this email. Please sign up first."}), 404
+
+    otp_record = EmailOTP.query.filter_by(email=email, is_used=False).order_by(EmailOTP.created_at.desc()).first()
+    if not otp_record or not otp_record.is_valid(otp):
+        return jsonify({"error": "Invalid or expired verification code. Please request a new OTP."}), 400
+
+    # Mark OTP as successfully used
+    otp_record.is_used = True
+
+    token = str(uuid.uuid4())
+    ip_address = request.remote_addr or "127.0.0.1"
+    user_agent = request.headers.get("User-Agent", "Unknown Client")
+
+    if user.user_type == "admin":
+        AdminSession.query.filter_by(admin_id=user.id, is_active=True).update({"is_active": False})
+        new_session = AdminSession(
+            admin_id=user.id,
+            session_token=token,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            is_active=True,
+            last_active=datetime.utcnow()
+        )
+        db.session.add(new_session)
+        db.session.commit()
+        AlertService.trigger_admin_login_alert(user.email, ip_address, user_agent)
+    else:
+        db.session.commit()
+
+    return jsonify({
+        "message": f"Successfully signed in as {user.full_name}",
         "token": token,
         "user": user.to_dict(),
         "is_singleton_admin_active": user.user_type == "admin"

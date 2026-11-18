@@ -31,7 +31,7 @@ class AlertService:
             db.session.rollback()
 
         # Attempt SMTP dispatch or simulated dispatch
-        if Config.SIMULATE_SMTP or not Config.MAIL_PASSWORD:
+        if Config.SIMULATE_SMTP or not Config.MAIL_PASSWORD or not Config.MAIL_USERNAME:
             print(f"\n=======================================================")
             print(f" [SIMULATED SMTP DISPATCH] TO: {target_email}")
             print(f" TYPE: {alert_type.upper()} | SUBJECT: {subject}")
@@ -42,18 +42,24 @@ class AlertService:
 
         try:
             msg = MIMEMultipart("alternative")
-            msg["Subject"] = f"[Green Nest Bloom Alert] {subject}"
-            msg["From"] = Config.MAIL_USERNAME
+            clean_subject = subject if "Green Nest Bloom" in subject else f"[Green Nest Bloom] {subject}"
+            msg["Subject"] = clean_subject
+            msg["From"] = f"Green Nest Bloom <{Config.MAIL_USERNAME}>"
             msg["To"] = target_email
             
             part = MIMEText(html_body, "html")
             msg.attach(part)
 
-            with smtplib.SMTP(Config.MAIL_SERVER, Config.MAIL_PORT) as server:
-                if Config.MAIL_USE_TLS:
-                    server.starttls()
-                server.login(Config.MAIL_USERNAME, Config.MAIL_PASSWORD)
-                server.sendmail(Config.MAIL_USERNAME, target_email, msg.as_string())
+            if Config.MAIL_PORT == 465:
+                with smtplib.SMTP_SSL(Config.MAIL_SERVER, Config.MAIL_PORT, timeout=15) as server:
+                    server.login(Config.MAIL_USERNAME, Config.MAIL_PASSWORD)
+                    server.sendmail(Config.MAIL_USERNAME, target_email, msg.as_string())
+            else:
+                with smtplib.SMTP(Config.MAIL_SERVER, Config.MAIL_PORT, timeout=15) as server:
+                    if Config.MAIL_USE_TLS:
+                        server.starttls()
+                    server.login(Config.MAIL_USERNAME, Config.MAIL_PASSWORD)
+                    server.sendmail(Config.MAIL_USERNAME, target_email, msg.as_string())
             return True
         except Exception as err:
             print(f"[AlertService] SMTP Send error: {err}")
