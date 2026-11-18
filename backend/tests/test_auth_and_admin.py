@@ -12,31 +12,12 @@ def client():
         db.drop_all()
 
 def test_user_registration(client):
-    # Registration without OTP must be blocked
-    res_no_otp = client.post("/api/auth/register", json={
-        "email": "test@example.com",
-        "password": "password123",
-        "full_name": "Test User",
-        "user_type": "individual"
-    })
-    assert res_no_otp.status_code == 400
-    assert "Verification OTP is required" in res_no_otp.get_json()["error"]
-
-    # Dispatch OTP
-    otp_res = client.post("/api/auth/send-otp", json={
-        "email": "test@example.com",
-        "full_name": "Test User"
-    })
-    assert otp_res.status_code == 200
-    otp_code = otp_res.get_json()["otp_preview"]
-
-    # Complete registration with valid OTP
+    # Registration succeeds directly without OTP
     res = client.post("/api/auth/register", json={
         "email": "test@example.com",
         "password": "password123",
         "full_name": "Test User",
-        "user_type": "individual",
-        "otp": otp_code
+        "user_type": "individual"
     })
     assert res.status_code == 201
     data = res.get_json()

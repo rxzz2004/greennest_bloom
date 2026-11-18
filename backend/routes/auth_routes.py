@@ -137,15 +137,10 @@ def register():
             if not gstin:
                 return jsonify({"error": "GSTIN is mandatory for verified corporate wholesale accounts."}), 400
 
-            if not otp:
-                return jsonify({"error": "Verification OTP is required. Please verify your email first."}), 400
-
-            otp_record = EmailOTP.query.filter_by(email=email, is_used=False).order_by(EmailOTP.created_at.desc()).first()
-            if not otp_record or not otp_record.is_valid(otp):
-                return jsonify({"error": "Invalid or expired verification code. Please request a new OTP."}), 400
-
-            # Redeem OTP
-            otp_record.is_used = True
+            if otp:
+                otp_record = EmailOTP.query.filter_by(email=email, is_used=False).order_by(EmailOTP.created_at.desc()).first()
+                if otp_record and otp_record.is_valid(otp):
+                    otp_record.is_used = True
 
             # Upgrade individual to corporate business partner
             existing_user.user_type = "corporate"
@@ -184,16 +179,11 @@ def register():
                 "error": "An account with this email address is already registered in our database. Duplicate registration is not allowed. Please sign in instead."
             }), 409
 
-    # Strictly require email OTP verification for every new user registration
-    if not otp:
-        return jsonify({"error": "Verification OTP is required. Please verify your email first."}), 400
-
-    otp_record = EmailOTP.query.filter_by(email=email, is_used=False).order_by(EmailOTP.created_at.desc()).first()
-    if not otp_record or not otp_record.is_valid(otp):
-        return jsonify({"error": "Invalid or expired verification code. Please request a new OTP."}), 400
-
-    # Mark OTP as successfully redeemed
-    otp_record.is_used = True
+    # Email OTP is optional / removed for streamlined registration
+    if otp:
+        otp_record = EmailOTP.query.filter_by(email=email, is_used=False).order_by(EmailOTP.created_at.desc()).first()
+        if otp_record and otp_record.is_valid(otp):
+            otp_record.is_used = True
 
     if user_type == "corporate" and not gstin:
         return jsonify({"error": "GSTIN is mandatory for verified corporate wholesale accounts."}), 400

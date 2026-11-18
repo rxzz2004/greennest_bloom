@@ -46,12 +46,10 @@ export default function LoginPage({
   const [gstin, setGstin] = useState(currentUser?.gstin || '');
   const [address, setAddress] = useState(currentUser?.address || '');
 
-  // OTP Verification state (used strictly during Registration and Password Reset)
+  // OTP Verification state (used strictly for Password Reset)
   const [otp, setOtp] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpSending, setOtpSending] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [otpVerifying, setOtpVerifying] = useState(false);
   const [otpCountdown, setOtpCountdown] = useState(0);
 
   // Send password reset code
@@ -113,67 +111,6 @@ export default function LoginPage({
     }
   };
 
-  // Send OTP to email during registration
-  const handleSendOtp = async () => {
-    if (!email || !email.includes('@')) {
-      setErrorMsg('Please enter a valid email address to receive your OTP.');
-      return;
-    }
-    setErrorMsg('');
-    setOtpSending(true);
-    try {
-      const res = await api.sendOtp(email.trim().toLowerCase(), fullName, userType, 'register');
-      if (res.error) {
-        setErrorMsg(res.error);
-        soundEffects.playClick();
-      } else {
-        setOtpSent(true);
-        setOtpVerified(false);
-        soundEffects.playSuccessChime();
-        setSuccessMsg(res.message || `Verification OTP sent to ${email}`);
-        setOtpCountdown(60);
-        const timer = setInterval(() => {
-          setOtpCountdown((prev) => {
-            if (prev <= 1) {
-              clearInterval(timer);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      }
-    } catch (err) {
-      setErrorMsg('Unable to dispatch verification email. Please check backend connection.');
-    } finally {
-      setOtpSending(false);
-    }
-  };
-
-  // Verify submitted OTP
-  const handleVerifyOtp = async () => {
-    if (!otp || otp.trim().length !== 6) {
-      setErrorMsg('Please enter the 6-digit OTP sent to your email.');
-      return;
-    }
-    setErrorMsg('');
-    setOtpVerifying(true);
-    try {
-      const res = await api.verifyOtp(email, otp);
-      if (res.error) {
-        setErrorMsg(res.error);
-        soundEffects.playClick();
-      } else {
-        setOtpVerified(true);
-        soundEffects.playSuccessChime();
-        setSuccessMsg('Email verified successfully! You can now complete your registration.');
-      }
-    } catch (err) {
-      setErrorMsg('Failed to verify OTP. Please try again.');
-    } finally {
-      setOtpVerifying(false);
-    }
-  };
-
   // Handle Sign In submission
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -205,20 +142,26 @@ export default function LoginPage({
     }
   };
 
-  // Handle Registration submission
+  // Handle Registration submission (direct, instant, no OTP blocking)
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (!otpSent) {
-      setErrorMsg('Please click "Send OTP" to receive a verification code on your email.');
+    if (!email || !password || !fullName) {
+      setErrorMsg('Please enter your full name, email address, and password.');
       soundEffects.playClick();
       return;
     }
 
-    if (!otp || otp.trim().length !== 6) {
-      setErrorMsg('Please enter the 6-digit verification OTP sent to your email.');
+    if (password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters long.');
+      soundEffects.playClick();
+      return;
+    }
+
+    if (userType === 'corporate' && !gstin) {
+      setErrorMsg('GSTIN is required for verified corporate business accounts.');
       soundEffects.playClick();
       return;
     }
@@ -226,28 +169,15 @@ export default function LoginPage({
     setLoading(true);
 
     try {
-      // If not yet verified via the inline button, verify with backend first
-      if (!otpVerified) {
-        const verifyRes = await api.verifyOtp(email, otp.trim());
-        if (verifyRes.error) {
-          setErrorMsg(verifyRes.error);
-          soundEffects.playClick();
-          setLoading(false);
-          return;
-        }
-        setOtpVerified(true);
-      }
-
       const payload = {
-        email,
+        email: email.trim().toLowerCase(),
         password,
-        full_name: fullName,
-        phone,
+        full_name: fullName.trim(),
+        phone: phone.trim(),
         user_type: userType,
-        company_name: userType === 'corporate' ? companyName : undefined,
-        gstin: userType === 'corporate' ? gstin.toUpperCase() : undefined,
-        address,
-        otp: otp.trim()
+        company_name: userType === 'corporate' ? companyName.trim() : undefined,
+        gstin: userType === 'corporate' ? gstin.trim().toUpperCase() : undefined,
+        address: address.trim()
       };
 
       const res = await api.register(payload);
@@ -263,6 +193,14 @@ export default function LoginPage({
         );
         setTimeout(() => {
           onLoginSuccess(res.user, res.token);
+        }, 700);
+      }
+    } catch (err) {
+      setErrorMsg('Failed to complete registration. Please check all fields.');
+    } finally {
+      setLoading(false);
+    }
+  };
         }, 700);
       }
     } catch (err) {
@@ -652,83 +590,18 @@ export default function LoginPage({
 
             <div>
               <label className="block font-bold text-stone-700 mb-1">Email Address</label>
-              <div className="flex space-x-2">
-                <div className="relative flex-1">
-                  <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setOtpVerified(false);
-                      setOtpSent(false);
-                      setOtpPreview('');
-                    }}
-                    placeholder="name@domain.com"
-                    required
-                    disabled={otpVerified}
-                    className="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-800 disabled:bg-stone-100 disabled:text-stone-500"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSendOtp}
-                  disabled={otpSending || !email || otpCountdown > 0 || otpVerified}
-                  className="px-3.5 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shrink-0 flex items-center space-x-1.5 transition-all disabled:opacity-50 shadow-xs"
-                >
-                  {otpSending ? (
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Send className="w-3.5 h-3.5" />
-                  )}
-                  <span>
-                    {otpVerified ? 'Verified' : otpCountdown > 0 ? `${otpCountdown}s` : otpSent ? 'Resend' : 'Send OTP'}
-                  </span>
-                </button>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@domain.com"
+                  required
+                  className="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-800"
+                />
               </div>
             </div>
-
-            {/* Email OTP Verification Input */}
-            {otpSent && !otpVerified && (
-              <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-emerald-950">
-                  <div className="flex items-center space-x-1.5">
-                    <KeyRound className="w-3.5 h-3.5 text-emerald-700" />
-                    <span>Enter 6-Digit Email OTP</span>
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    placeholder="e.g. 542891"
-                    className="flex-1 px-3 py-2 rounded-xl border border-emerald-300 text-center tracking-widest font-mono text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-700"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleVerifyOtp}
-                    disabled={otpVerifying || otp.trim().length !== 6}
-                    className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition-colors disabled:opacity-50 flex items-center space-x-1"
-                  >
-                    {otpVerifying ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                    <span>Verify</span>
-                  </button>
-                </div>
-                <p className="text-[10px] text-stone-500">
-                  We've dispatched a one-time code to <strong>{email}</strong>. Check your inbox and spam folder.
-                </p>
-              </div>
-            )}
-
-            {/* Verified Confirmation Badge */}
-            {otpVerified && (
-              <div className="p-2.5 bg-emerald-100/70 border border-emerald-300 rounded-xl flex items-center space-x-2 text-xs font-bold text-emerald-900">
-                <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
-                <span>Email address verified with secure OTP</span>
-              </div>
-            )}
 
             {/* Corporate Specific Fields */}
             {userType === 'corporate' && (
