@@ -52,7 +52,6 @@ export default function LoginPage({
   const [otpSending, setOtpSending] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpVerifying, setOtpVerifying] = useState(false);
-  const [otpPreview, setOtpPreview] = useState('');
   const [otpCountdown, setOtpCountdown] = useState(0);
 
   // Send password reset code
@@ -73,9 +72,6 @@ export default function LoginPage({
         setOtpSent(true);
         soundEffects.playSuccessChime();
         setSuccessMsg(res.message || `Password reset code sent to ${email}`);
-        if (res.otp_preview) {
-          setOtpPreview(res.otp_preview);
-        }
       }
     } catch (err) {
       setErrorMsg('Unable to dispatch reset email. Please verify backend connection.');
@@ -135,9 +131,6 @@ export default function LoginPage({
         setOtpVerified(false);
         soundEffects.playSuccessChime();
         setSuccessMsg(res.message || `Verification OTP sent to ${email}`);
-        if (res.otp_preview) {
-          setOtpPreview(res.otp_preview);
-        }
         setOtpCountdown(60);
         const timer = setInterval(() => {
           setOtpCountdown((prev) => {
@@ -556,22 +549,6 @@ export default function LoginPage({
                     required
                     className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-900 font-mono tracking-widest text-center text-sm font-bold bg-white"
                   />
-
-                  {otpPreview && (
-                    <div className="flex items-center justify-between text-[11px] bg-amber-50 text-amber-800 px-3 py-1.5 rounded-lg border border-amber-200">
-                      <span>Dev / Simulation Code: <strong className="font-mono text-xs tracking-wider">{otpPreview}</strong></span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOtp(otpPreview);
-                          soundEffects.playClick();
-                        }}
-                        className="text-amber-900 font-semibold underline hover:text-amber-700 ml-2 cursor-pointer"
-                      >
-                        Autofill
-                      </button>
-                    </div>
-                  )}
                 </div>
 
                 <div>
@@ -739,23 +716,8 @@ export default function LoginPage({
                     <span>Verify</span>
                   </button>
                 </div>
-                {otpPreview && (
-                  <div className="p-2 bg-emerald-100/90 border border-emerald-300 rounded-xl text-[11px] text-emerald-900 flex items-center justify-between">
-                    <span>Dev / Simulation OTP: <strong className="font-mono text-xs tracking-wider">{otpPreview}</strong></span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        soundEffects.playClick();
-                        setOtp(otpPreview);
-                      }}
-                      className="text-[10px] bg-emerald-800 hover:bg-emerald-900 text-white font-bold px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
-                    >
-                      Fill Code
-                    </button>
-                  </div>
-                )}
                 <p className="text-[10px] text-stone-500">
-                  We've dispatched a one-time code to <strong>{email}</strong>. Check your inbox.
+                  We've dispatched a one-time code to <strong>{email}</strong>. Check your inbox and spam folder.
                 </p>
               </div>
             )}

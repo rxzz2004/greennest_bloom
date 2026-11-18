@@ -15,12 +15,16 @@ services:
       - key: FLASK_ENV
         value: production
       - key: SIMULATE_SMTP
-        value: "true"
+        value: "false"
       - key: MAIL_SERVER
         value: smtp.gmail.com
       - key: MAIL_PORT
         value: "587"
       - key: MAIL_USE_TLS
         value: "true"
+      - key: MAIL_USERNAME
+        value: venishadsouza1322@gmail.com
+      - key: MAIL_PASSWORD
+        value: rgvzrqgdsbkfkhcj
       - key: ADMIN_EMAIL
-        value: admin@greennestbloom.com
+        value: venishadsouza1322@gmail.com

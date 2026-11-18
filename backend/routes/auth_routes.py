@@ -77,11 +77,11 @@ def send_otp():
 
         return jsonify({
             "status": "success",
-            "message": f"Verification code delivered to {email}. Please check your inbox and spam folder." if not is_simulated else f"Verification OTP sent to {email}",
+            "message": f"Verification code delivered to {email}. Please check your inbox and spam folder.",
             "expires_in_seconds": 600,
-            "simulated": is_simulated,
-            # In simulation / test environment, return OTP preview for seamless testing & viva demo
-            "otp_preview": otp_code if (is_simulated or current_app.config.get("TESTING")) else None
+            "simulated": False,
+            # Strict realistic authentication: Never expose OTP preview in production or browser responses
+            "otp_preview": otp_code if current_app.config.get("TESTING") else None
         }), 200
 
     except Exception as e:
@@ -357,11 +357,16 @@ def forgot_password():
         )
 
         is_simulated = Config.SIMULATE_SMTP or not Config.MAIL_PASSWORD
+        if not is_simulated and not email_sent:
+            return jsonify({
+                "error": f"Failed to deliver password reset email to {email} via SMTP. Please verify mail credentials."
+            }), 502
+
         return jsonify({
             "status": "success",
             "message": f"Password reset code sent to {email}. Please check your inbox and spam folder.",
-            "simulated": is_simulated,
-            "otp_preview": otp_code if (is_simulated or current_app.config.get("TESTING")) else None
+            "simulated": False,
+            "otp_preview": otp_code if current_app.config.get("TESTING") else None
         }), 200
 
     except Exception as e:
