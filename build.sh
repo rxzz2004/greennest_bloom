@@ -8,23 +8,19 @@ echo "=============================================="
 
 echo "Step 1: Installing frontend dependencies & building React SPA..."
 cd frontend
-npm install
+# Ensure devDependencies (vite, tailwind) are installed even if NODE_ENV=production
+npm install --include=dev
 npm run build
 cd ..
 
 echo "Step 2: Installing Python backend dependencies..."
-if command -v pip &> /dev/null; then
-    pip install -r requirements.txt
-elif command -v pip3 &> /dev/null; then
-    pip3 install -r requirements.txt
-else
-    python3 -m pip install -r requirements.txt
-fi
+python3 -m pip install --upgrade pip setuptools wheel
+python3 -m pip install -r requirements.txt
 
 echo "Step 3: Verifying backend database initialization..."
 python3 -c "
 import os, sys
-sys.path.insert(0, 'backend')
+sys.path.insert(0, os.path.abspath('backend'))
 from app import create_app
 app, _ = create_app()
 with app.app_context():
