@@ -18,6 +18,13 @@ const FOCAL_PHOTO_MAP = {
   4: '/peony_bouquet_realistic.jpg'    // Blush Duchess Peonies
 };
 
+const SPREAD_TIERS = [
+  { value: 0.8, label: 'Petite', diameter: 28, density: 'Compact Dome', multiplier: 0.8, desc: 'Tight, minimalist spherical bind' },
+  { value: 1.0, label: 'Signature', diameter: 36, density: 'Classic Balance', multiplier: 1.0, desc: 'Harmonious artisan crown' },
+  { value: 1.2, label: 'Lush', diameter: 44, density: 'Voluminous Canopy', multiplier: 1.35, desc: 'Expanded airy filler bloom density' },
+  { value: 1.4, label: 'Grand Luxe', diameter: 52, density: 'Majestic Sprawl', multiplier: 1.7, desc: 'Expansive botanical foliage spread' }
+];
+
 export default function BouquetBuilder7Step({ onAddToCart, isOpen, onClose }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [elements, setElements] = useState(null);
@@ -39,8 +46,15 @@ export default function BouquetBuilder7Step({ onAddToCart, isOpen, onClose }) {
     addons: ['calligraphy_wax_card']
   });
 
-  // Spread / fullness factor
+  // Fullness & spread factor (0.8 = Petite, 1.0 = Signature, 1.2 = Lush, 1.4 = Grand Luxe)
   const [spreadFactor, setSpreadFactor] = useState(1.0);
+
+  const currentSpreadTier = SPREAD_TIERS.reduce((prev, curr) => 
+    Math.abs(curr.value - spreadFactor) < Math.abs(prev.value - spreadFactor) ? curr : prev
+  );
+
+  const effectiveFillerCount = Math.max(0, Math.round(config.filler_count * currentSpreadTier.multiplier));
+  const effectiveFoliageCount = Math.max(0, Math.round(config.foliage_count * currentSpreadTier.multiplier));
 
   const [bomPrice, setBomPrice] = useState({
     subtotal: 945.0,
@@ -68,18 +82,23 @@ export default function BouquetBuilder7Step({ onAddToCart, isOpen, onClose }) {
     loadElements();
   }, []);
 
-  // Recalculate BOM Price when config changes
+  // Recalculate BOM Price when config or spread factor changes
   useEffect(() => {
     async function updateBOM() {
       try {
-        const res = await api.calculateBOM(config);
+        const payload = {
+          ...config,
+          filler_count: effectiveFillerCount,
+          foliage_count: effectiveFoliageCount
+        };
+        const res = await api.calculateBOM(payload);
         setBomPrice(res);
       } catch (err) {
         console.error('BOM calc error:', err);
       }
     }
     updateBOM();
-  }, [config]);
+  }, [config, spreadFactor]);
 
   // Load Preset
   const handleLoadPreset = (preset) => {
@@ -109,14 +128,21 @@ export default function BouquetBuilder7Step({ onAddToCart, isOpen, onClose }) {
 
     onAddToCart({
       id: `custom_bouquet_${Date.now()}`,
-      name: `Custom Bouquet (${config.focal_count} Blooms, ${config.arrangement_style.replace('_', ' ')})`,
+      name: `Custom Bouquet (${config.focal_count} Blooms, ${currentSpreadTier.label} Ø${currentSpreadTier.diameter}cm)`,
       base_price: bomPrice.total_price,
       effective_price: bomPrice.total_price,
       quantity: 1,
       is_perishable: true,
       category: 'cut_flower',
       image_url: activePhoto,
-      custom_spec: config
+      custom_spec: {
+        ...config,
+        effective_filler_count: effectiveFillerCount,
+        effective_foliage_count: effectiveFoliageCount,
+        spread_tier: currentSpreadTier.label,
+        spread_diameter_cm: currentSpreadTier.diameter,
+        spread_factor: spreadFactor
+      }
     });
     onClose();
   };
@@ -530,16 +556,29 @@ export default function BouquetBuilder7Step({ onAddToCart, isOpen, onClose }) {
             <div className="space-y-3">
               <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-stone-200/90 shadow-md bg-gradient-to-b from-stone-100 to-stone-200/80 flex items-center justify-center">
                 
-                {/* Scaled Realistic Bouquet Image */}
-                <div 
-                  className="w-full h-full transition-transform duration-300 ease-out flex items-center justify-center overflow-hidden"
-                  style={{ transform: `scale(${spreadFactor})` }}
-                >
+                {/* Authentic Studio Bouquet Photograph - Stationary & Framed */}
+                <div className="w-full h-full flex items-center justify-center overflow-hidden">
                   <img 
                     src={activeBouquetImage} 
                     alt="Handcrafted Bouquet Preview"
-                    className="w-full h-full object-cover object-center shadow-inner"
+                    className="w-full h-full object-cover object-center"
                   />
+                </div>
+
+                {/* Botanical Arrangement Canopy Spread Overlay */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div 
+                    className="rounded-full border-2 border-dashed border-rose-300/80 transition-all duration-300 flex items-center justify-center"
+                    style={{
+                      width: `${Math.min(94, Math.max(52, (currentSpreadTier.diameter / 54) * 88))}%`,
+                      height: `${Math.min(94, Math.max(52, (currentSpreadTier.diameter / 54) * 88))}%`,
+                      boxShadow: `0 0 24px rgba(244, 63, 94, ${spreadFactor >= 1.2 ? 0.35 : 0.15})`
+                    }}
+                  >
+                    <span className="bg-stone-900/85 backdrop-blur-md text-amber-200 text-[10px] font-mono px-2.5 py-0.5 rounded-full font-bold shadow-md tracking-wider">
+                      Ø {currentSpreadTier.diameter} cm Spread
+                    </span>
+                  </div>
                 </div>
 
                 {/* Top Artisan Seal Badge */}
@@ -557,17 +596,19 @@ export default function BouquetBuilder7Step({ onAddToCart, isOpen, onClose }) {
                 )}
 
                 {/* Floating Specs Pill at Bottom of Photo */}
-                <div className="absolute bottom-3 inset-x-3 bg-white/90 backdrop-blur-md rounded-xl p-2.5 border border-white/60 shadow-lg text-xs space-y-0.5">
+                <div className="absolute bottom-3 inset-x-3 bg-white/95 backdrop-blur-md rounded-xl p-2.5 border border-white/60 shadow-lg text-xs space-y-0.5">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-stone-900 truncate">
                       {currentFocal?.name || 'Handcrafted Flowers'}
                     </span>
                     <span className="text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
-                      {config.focal_count} Stems
+                      {bomPrice.total_stem_count || (config.focal_count + effectiveFillerCount + effectiveFoliageCount)} Stems
                     </span>
                   </div>
                   <p className="text-[11px] text-stone-500 truncate flex items-center gap-1.5">
                     <span>{currentWrapping?.name || 'Matte Kraft Wrap'}</span>
+                    <span>•</span>
+                    <span className="text-rose-700 font-semibold">{currentSpreadTier.label} (Ø{currentSpreadTier.diameter}cm)</span>
                     <span>•</span>
                     <span>{currentStyle?.name || 'Classic Dome'}</span>
                   </p>
@@ -593,23 +634,52 @@ export default function BouquetBuilder7Step({ onAddToCart, isOpen, onClose }) {
 
               </div>
 
-              {/* Spread & Fullness Slider */}
-              <div className="p-3 bg-white rounded-xl border border-stone-200/80 space-y-1.5 text-xs">
-                <div className="flex items-center justify-between text-stone-600">
-                  <span className="flex items-center gap-1 font-medium">
-                    <Sliders className="w-3 h-3 text-rose-500" /> Fullness & Spread:
+              {/* Fullness & Spread Architecture Control */}
+              <div className="p-3.5 bg-white rounded-2xl border border-stone-200/90 shadow-xs space-y-2.5 text-xs">
+                <div className="flex items-center justify-between text-stone-700">
+                  <span className="flex items-center gap-1.5 font-bold">
+                    <Sliders className="w-3.5 h-3.5 text-rose-500" /> Fullness & Spread
                   </span>
-                  <span className="font-mono text-stone-900 font-bold">{(spreadFactor * 100).toFixed(0)}%</span>
+                  <span className="font-mono text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 text-[11px]">
+                    {(spreadFactor * 100).toFixed(0)}% • {currentSpreadTier.label}
+                  </span>
                 </div>
+
+                {/* Preset Tier Pills */}
+                <div className="grid grid-cols-4 gap-1.5">
+                  {SPREAD_TIERS.map((tier) => (
+                    <button
+                      key={tier.label}
+                      type="button"
+                      onClick={() => setSpreadFactor(tier.value)}
+                      className={`py-1.5 px-1 rounded-xl text-center transition-all cursor-pointer border ${
+                        Math.abs(spreadFactor - tier.value) < 0.05
+                          ? 'bg-rose-500 text-white font-bold border-rose-500 shadow-xs'
+                          : 'bg-stone-50 hover:bg-rose-50 text-stone-600 border-stone-200 text-[11px]'
+                      }`}
+                    >
+                      <div className="text-[11px] leading-tight">{tier.label}</div>
+                      <div className="text-[9px] opacity-80">Ø{tier.diameter}cm</div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Slider */}
                 <input
                   type="range"
-                  min="0.85"
-                  max="1.2"
+                  min="0.80"
+                  max="1.40"
                   step="0.05"
                   value={spreadFactor}
                   onChange={(e) => setSpreadFactor(parseFloat(e.target.value))}
-                  className="w-full accent-rose-500 cursor-pointer"
+                  className="w-full accent-rose-500 cursor-pointer h-1.5 bg-stone-200 rounded-lg"
                 />
+
+                <div className="flex justify-between items-center text-[10px] text-stone-500 font-medium pt-0.5">
+                  <span>Petite (28cm)</span>
+                  <span className="text-stone-700 italic">{currentSpreadTier.desc}</span>
+                  <span>Grand (52cm)</span>
+                </div>
               </div>
             </div>
 
