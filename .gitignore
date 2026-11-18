@@ -1,0 +1,36 @@
+# Virtual Environment & Python Artifacts
+backend/.venv/
+.venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+.coverage
+htmlcov/
+
+# Node & Frontend Build
+frontend/node_modules/
+node_modules/
+frontend/dist/
+
+# Environment Secrets
+.env
+backend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Database files (sqlite for local dev)
+# Leave greennest_bloom.db or ignore if generated dynamically
+*.db-journal
+
+# OS / Editor Files
+.DS_Store
+.AppleDouble
+.LSOverride
+.vscode/
+.idea/
+
+# Large binary document exports
+*.pages
+

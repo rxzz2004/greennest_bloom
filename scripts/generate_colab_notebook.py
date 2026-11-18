@@ -1,0 +1,125 @@
+import json
+
+notebook = {
+    "cells": [
+        {
+            "cell_type": "markdown",
+            "metadata": {},
+            "source": [
+                "# 🌸 GreenNest Bloom: Wedding Venue Inpainting LoRA Training\n",
+                "Train a custom diffusion inpainting LoRA adapter on your 66 extracted wedding venue architecture images.\n",
+                "\n",
+                "**Hardware requirement**: Free Google Colab **T4 GPU** (`Runtime > Change runtime type > T4 GPU`).\n",
+                "**Estimated training time**: ~15 minutes."
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 1. Verify GPU and install required ML libraries\n",
+                "import torch\n",
+                "print('CUDA GPU available:', torch.cuda.is_available())\n",
+                "if torch.cuda.is_available():\n",
+                "    print('GPU Device:', torch.cuda.get_device_name(0))\n",
+                "else:\n",
+                "    print('⚠️ Please go to Runtime > Change runtime type > select T4 GPU!')\n",
+                "\n",
+                "!pip install -q diffusers transformers accelerate peft safetensors torchvision"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 2. Extract your venue dataset\n",
+                "# Note: Drag and drop wedding_venues_dataset.zip into the Colab Files tab on the left\n",
+                "import os, zipfile\n",
+                "\n",
+                "if os.path.exists('wedding_venues_dataset.zip'):\n",
+                "    with zipfile.ZipFile('wedding_venues_dataset.zip', 'r') as z:\n",
+                "        z.extractall('.')\n",
+                "    print('✅ Dataset extracted successfully!')\n",
+                "elif os.path.exists('wedding_venues'):\n",
+                "    print('✅ Dataset folder already present!')\n",
+                "else:\n",
+                "    print('📁 Upload wedding_venues_dataset.zip using the Files tab on the left, then re-run this cell.')\n",
+                "\n",
+                "img_dir = 'wedding_venues/processed_1024'\n",
+                "if os.path.exists(img_dir):\n",
+                "    imgs = [f for f in os.listdir(img_dir) if f.endswith('.jpg')]\n",
+                "    print(f'Found {len(imgs)} normalized 1024x1024 training photos ready for training.')"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 3. Download official Diffusers SDXL LoRA trainer\n",
+                "!wget -q https://raw.githubusercontent.com/huggingface/diffusers/main/examples/dreambooth/train_dreambooth_lora_sdxl.py -O train_dreambooth_lora_sdxl.py\n",
+                "\n",
+                "# 4. Start LoRA Training (800 steps, ~15 mins on free T4)\n",
+                "!accelerate launch train_dreambooth_lora_sdxl.py \\\n",
+                "  --pretrained_model_name_or_path='diffusers/stable-diffusion-xl-1.0-inpainting-0.1' \\\n",
+                "  --instance_data_dir='wedding_venues/processed_1024' \\\n",
+                "  --output_dir='./venue_lora_weights' \\\n",
+                "  --instance_prompt='a photo of a luxury wedding venue stage, [wedding_stage_venue]' \\\n",
+                "  --resolution=1024 \\\n",
+                "  --train_batch_size=1 \\\n",
+                "  --gradient_accumulation_steps=4 \\\n",
+                "  --learning_rate=1e-4 \\\n",
+                "  --lr_scheduler='constant' \\\n",
+                "  --lr_warmup_steps=0 \\\n",
+                "  --max_train_steps=800 \\\n",
+                "  --mixed_precision='fp16' \\\n",
+                "  --checkpointing_steps=200"
+            ]
+        },
+        {
+            "cell_type": "code",
+            "execution_count": None,
+            "metadata": {},
+            "outputs": [],
+            "source": [
+                "# 5. Download the trained LoRA weights file\n",
+                "import os\n",
+                "from google.colab import files\n",
+                "\n",
+                "weights_file = './venue_lora_weights/pytorch_lora_weights.safetensors'\n",
+                "if os.path.exists(weights_file):\n",
+                "    print('🎉 Training finished successfully! Downloading weights...')\n",
+                "    files.download(weights_file)\n",
+                "else:\n",
+                "    print('Weights file not found yet. Check the training output above.')"
+            ]
+        }
+    ],
+    "metadata": {
+        "accelerator": "GPU",
+        "colab": {
+            "gpuType": "T4",
+            "provenance": []
+        },
+        "kernelspec": {
+            "display_name": "Python 3",
+            "name": "python3"
+        },
+        "language_info": {
+            "name": "python"
+        }
+    },
+    "nbformat": 4,
+    "nbformat_minor": 0
+}
+
+with open("backend/datasets/Train_Wedding_Venues_Inpainting_LoRA.ipynb", "w", encoding="utf-8") as f:
+    json.dump(notebook, f, indent=2)
+
+print("Created Train_Wedding_Venues_Inpainting_LoRA.ipynb successfully!")
+

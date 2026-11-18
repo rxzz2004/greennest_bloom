@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" modified="2026-10-30T10:30:00.000Z" agent="Antigravity AI" version="21.0.0" type="device">
+  <diagram id="gnb-academic-architecture" name="Green Nest Bloom Architecture">
+    <mxGraphModel dx="1422" dy="890" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="780" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="layer_pres" value="Presentation Layer: User Interface" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=left;verticalAlign=top;spacingLeft=15;spacingTop=8;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="40" y="30" width="800" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="p_retail" value="&lt;b&gt;Customer &amp;amp; Retail Portal&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;&quot;&gt;Browse Botanicals, 7-Step Canvas Studio,&lt;br/&gt;Cart &amp;amp; Order Checkout&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=11;fontFamily=Helvetica;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="65" y="65" width="230" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="p_b2b" value="&lt;b&gt;Corporate &amp;amp; B2B Portal&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;&quot;&gt;Bulk Flower Inquiries, Verified GSTIN,&lt;br/&gt;Single-Event Date Booking&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=11;fontFamily=Helvetica;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="325" y="65" width="230" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="p_admin" value="&lt;b&gt;Admin &amp;amp; Logistics Portal&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;&quot;&gt;Manage Perishables, Decay Sliders,&lt;br/&gt;Live Van Telemetry HUD&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=11;fontFamily=Helvetica;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="585" y="65" width="230" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="layer_app" value="Application Layer: Flask Backend" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=left;verticalAlign=top;spacingLeft=15;spacingTop=8;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="40" y="240" width="800" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="a_auth" value="&lt;b&gt;User Login &amp;amp; Security&lt;/b&gt;&lt;br/&gt;• Login &amp;amp; Registration&lt;br/&gt;• Role Based Access (RBAC)&lt;br/&gt;• Email OTP Verification&lt;br/&gt;• Singleton Admin Guard" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=11;fontFamily=Helvetica;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="65" y="280" width="175" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="a_order" value="&lt;b&gt;Orders &amp;amp; GST Engine&lt;/b&gt;&lt;br/&gt;• Retail Cart Caps (&amp;le; 5)&lt;br/&gt;• Wholesale MOQs (&amp;ge; 20)&lt;br/&gt;• Multi-Tier GST Tax Split&lt;br/&gt;• Coupon Code Verification" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=11;fontFamily=Helvetica;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="255" y="280" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fefo" value="&lt;b&gt;Perishable Spoilage (FEFO)&lt;/b&gt;&lt;br/&gt;• Batch Harvest Age Tracking&lt;br/&gt;• Dynamic Price Markdowns&lt;br/&gt;• Spoilage Disposal Alerts&lt;br/&gt;• Automated Senescence" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=11;fontFamily=Helvetica;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="450" y="280" width="185" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="a_logistics" value="&lt;b&gt;Logistics &amp;amp; Telemetry&lt;/b&gt;&lt;br/&gt;• Haversine Distance (Kalmane)&lt;br/&gt;• Single-Event Clash Guard&lt;br/&gt;• Real-Time GPS WebSocket&lt;br/&gt;• Driver Telematics Relay" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=11;fontFamily=Helvetica;align=left;verticalAlign=top;spacingLeft=12;spacingTop=10;" vertex="1" parent="1">
+          <mxGeometry x="650" y="280" width="170" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="s_email" value="&lt;b&gt;Email &amp;amp; Alert Service&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;&quot;&gt;Send OTP to Customer&lt;br/&gt;Admin Security Alerts&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontSize=11;fontFamily=Helvetica;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="875" y="300" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="layer_db" value="Database Layer: Storage" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;align=left;verticalAlign=top;spacingLeft=15;spacingTop=8;fontColor=#000000;fontStyle=1;fontSize=13;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="40" y="480" width="800" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="db_cylinder" value="&lt;b&gt;SQLite / MySQL Database: greennest_bloom.db&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;&quot;&gt;Tables: users, email_otps, products, perishable_batches, orders, order_items, event_quotations, delivery_telemetry, admin_sessions&lt;/span&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontColor=#000000;fontFamily=Helvetica;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="180" y="515" width="520" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_login" value="Login and OTP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=10;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.25;exitY=1.0;entryX=0.45;entryY=0.0;" edge="1" parent="1" source="p_retail" target="a_auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_order" value="Submit Order" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=10;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.75;exitY=1.0;entryX=0.25;entryY=0.0;" edge="1" parent="1" source="p_retail" target="a_order">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_b2b" value="Corporate Booking" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=10;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.75;entryY=0.0;" edge="1" parent="1" source="p_b2b" target="a_order">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fefo" value="Manage Batches" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=10;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.3;exitY=1.0;entryX=0.5;entryY=0.0;" edge="1" parent="1" source="p_admin" target="a_fefo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_telemetry" value="Track Fleet &amp;amp; Slots" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=10;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.7;exitY=1.0;entryX=0.5;entryY=0.0;" edge="1" parent="1" source="p_admin" target="a_logistics">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_send_otp" value="Send Verification Code" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=10;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.0;entryY=0.5;" edge="1" parent="1" source="a_auth" target="s_email">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_db" value="Database Queries: Fetch, Update, and Save Records" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=10;fontFamily=Helvetica;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;" edge="1" parent="1" source="layer_app" target="db_cylinder">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

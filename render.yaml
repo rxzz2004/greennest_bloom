@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: greennest-bloom
+    runtime: python
+    region: oregon
+    plan: free
+    branch: main
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn -w 1 --threads 4 -b 0.0.0.0:$PORT wsgi:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: NODE_VERSION
+        value: 20.10.0
+      - key: FLASK_ENV
+        value: production
+      - key: SIMULATE_SMTP
+        value: "true"
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USE_TLS
+        value: "true"
+      - key: ADMIN_EMAIL
+        value: admin@greennestbloom.com

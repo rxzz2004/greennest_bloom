@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 2000" width="100%" height="100%" style="background-color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow-emerald" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#34d399"/>
+    </marker>
+    <marker id="arrow-cyan" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#38bdf8"/>
+    </marker>
+    <marker id="arrow-amber" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#fbbf24"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#c084fc"/>
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#grid)" />
+
+  <!-- Header -->
+  <text x="1200.0" y="55" text-anchor="middle" font-size="34" font-weight="bold" fill="#f8fafc">GREEN NEST BLOOM — HIGH-LEVEL SYSTEM ARCHITECTURE</text>
+  <text x="1200.0" y="95" text-anchor="middle" font-size="20" fill="#94a3b8">Decoupled Multi-Tier Floriculture Commerce, Perishable Spoilage Daemon &amp; Cold-Chain Telemetry Platform</text>
+
+  <!-- ================= TIER 1 ================= -->
+  <rect x="100" y="150" width="2200" height="280" rx="18" fill="#182235" stroke="#334155" stroke-width="2"/>
+  <text x="135" y="195" font-size="26" font-weight="bold" fill="#38bdf8">TIER 1: PRESENTATION LAYER (Client Browser &amp; PWA)</text>
+  <text x="135" y="225" font-size="16" fill="#94a3b8">React.js 18 • Tailwind CSS • Fabric.js HTML5 Canvas • Leaflet GIS • Socket.IO Client</text>
+
+  <!-- Card 1.1 -->
+  <rect x="135" y="245" width="510" height="155" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="155" y="280" font-size="22" font-weight="bold" fill="#ffffff">B2C Retail Portal</text>
+  <text x="155" y="315" font-size="16" fill="#94a3b8">• 7-Step Fabric.js Bouquet Studio</text>
+  <text x="155" y="340" font-size="16" fill="#94a3b8">• Dynamic FEFO Markdown Badges</text>
+  <text x="155" y="365" font-size="16" fill="#94a3b8">• Cart Purchase Caps (&le; 5 units / item)</text>
+
+  <!-- Card 1.2 -->
+  <rect x="670" y="245" width="510" height="155" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="690" y="280" font-size="22" font-weight="bold" fill="#ffffff">B2B Corporate Portal</text>
+  <text x="690" y="315" font-size="16" fill="#94a3b8">• Verified GSTIN Registration</text>
+  <text x="690" y="340" font-size="16" fill="#94a3b8">• Wholesale MOQ Pricing (&ge; 20 units)</text>
+  <text x="690" y="365" font-size="16" fill="#94a3b8">• Downloadable GST Tax Invoices (PDF)</text>
+
+  <!-- Card 1.3 -->
+  <rect x="1205" y="245" width="510" height="155" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="1225" y="280" font-size="22" font-weight="bold" fill="#ffffff">Singleton Admin Console</text>
+  <text x="1225" y="315" font-size="16" fill="#94a3b8">• FEFO Decay Multipliers &amp; Overrides</text>
+  <text x="1225" y="340" font-size="16" fill="#94a3b8">• Real-time Dispatch Fleet Telemetry HUD</text>
+  <text x="1225" y="365" font-size="16" fill="#94a3b8">• Single-Session Protected Lock</text>
+
+  <!-- Card 1.4 -->
+  <rect x="1740" y="245" width="510" height="155" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="1760" y="280" font-size="22" font-weight="bold" fill="#ffffff">Driver Telemetry PWA</text>
+  <text x="1760" y="315" font-size="16" fill="#94a3b8">• HTML5 Geolocation WGS84 Beacon</text>
+  <text x="1760" y="340" font-size="16" fill="#94a3b8">• 1-Second GPS Coordinate Relays</text>
+  <text x="1760" y="365" font-size="16" fill="#94a3b8">• Refrigerated EV Van Transit Stream</text>
+
+  <!-- ================= TIER 2 ================= -->
+  <rect x="100" y="520" width="2200" height="240" rx="18" fill="#182235" stroke="#334155" stroke-width="2"/>
+  <text x="135" y="565" font-size="26" font-weight="bold" fill="#38bdf8">TIER 2: API GATEWAY &amp; SECURITY LAYER (Python Flask 3.x)</text>
+  <text x="135" y="595" font-size="16" fill="#94a3b8">Stateless HTTP REST Endpoints • Blueprint Routing Hub • RBAC Security &amp; Singleton Admin Session Guard</text>
+
+  <!-- Card 2.1 -->
+  <rect x="135" y="615" width="690" height="120" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="155" y="650" font-size="22" font-weight="bold" fill="#ffffff">Flask REST API Gateway</text>
+  <text x="155" y="685" font-size="16" fill="#94a3b8">• WSGI Request Dispatcher &amp; Blueprint Partitioning Hub</text>
+  <text x="155" y="710" font-size="16" fill="#94a3b8">• Strict JSON Schema Validation &amp; CORS Middleware</text>
+
+  <!-- Card 2.2 -->
+  <rect x="855" y="615" width="690" height="120" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="875" y="650" font-size="22" font-weight="bold" fill="#ffffff">RBAC &amp; Token Auth Guard</text>
+  <text x="875" y="685" font-size="16" fill="#94a3b8">• PBKDF2-SHA256 Password Cryptography</text>
+  <text x="875" y="710" font-size="16" fill="#94a3b8">• Role Boundaries (Individual / Corporate / Admin)</text>
+
+  <!-- Card 2.3 -->
+  <rect x="1575" y="615" width="675" height="120" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="1595" y="650" font-size="22" font-weight="bold" fill="#ffffff">Singleton Session Governance</text>
+  <text x="1595" y="685" font-size="16" fill="#94a3b8">• Active Administrative Token Verifier (Redis Lock)</text>
+  <text x="1595" y="710" font-size="16" fill="#94a3b8">• Invalidation of Prior Concurrent Administrative Logins</text>
+
+  <!-- ================= TIER 3 ================= -->
+  <rect x="100" y="850" width="2200" height="380" rx="18" fill="#182235" stroke="#334155" stroke-width="2"/>
+  <text x="135" y="895" font-size="26" font-weight="bold" fill="#38bdf8">TIER 3: CORE APPLICATION SERVICES (Business Logic Engines)</text>
+  <text x="135" y="925" font-size="16" fill="#94a3b8">Asynchronous Task Processing • Geospatial Logistics • Perishable Senescence Models • Live Duplexing</text>
+
+  <!-- Card 3.1 -->
+  <rect x="135" y="945" width="510" height="255" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="155" y="980" font-size="22" font-weight="bold" fill="#ffffff">WebSocket Telemetry Hub</text>
+  <text x="155" y="1015" font-size="15" fill="#94a3b8">• Flask-SocketIO Bidirectional Engine</text>
+  <text x="155" y="1040" font-size="15" fill="#94a3b8">• Driver Location Channel Broadcasts</text>
+  <text x="155" y="1065" font-size="15" fill="#94a3b8">• 1-Second GPS Telemetry Heartbeat</text>
+  <text x="155" y="1090" font-size="15" fill="#94a3b8">• Speed, Battery &amp; ETA Computations</text>
+  <text x="155" y="1115" font-size="15" fill="#94a3b8">• Sub-2-Second Live Map Refresh</text>
+
+  <!-- Card 3.2 -->
+  <rect x="670" y="945" width="510" height="255" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="690" y="980" font-size="22" font-weight="bold" fill="#ffffff">Cart &amp; Order Manager</text>
+  <text x="690" y="1015" font-size="15" fill="#94a3b8">• Retail Purchase Caps (&le; 5 units)</text>
+  <text x="690" y="1040" font-size="15" fill="#94a3b8">• Wholesale MOQs Validation (&ge; 20)</text>
+  <text x="690" y="1065" font-size="15" fill="#94a3b8">• Multi-Tier GST Tax Computation</text>
+  <text x="690" y="1090" font-size="15" fill="#94a3b8">  - CGST 2.5% + SGST 2.5% (Intra-State)</text>
+  <text x="690" y="1115" font-size="15" fill="#94a3b8">  - IGST 5.0% (Inter-State Supply)</text>
+  <text x="690" y="1140" font-size="15" fill="#94a3b8">• Dynamic Coupon Code Discounts</text>
+
+  <!-- Card 3.3 -->
+  <rect x="1205" y="945" width="510" height="255" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="1225" y="980" font-size="22" font-weight="bold" fill="#ffffff">Haversine Logistics Engine</text>
+  <text x="1225" y="1015" font-size="15" fill="#94a3b8">• Great-Circle Spherical Distance</text>
+  <text x="1225" y="1040" font-size="15" fill="#94a3b8">• Packing Depot: Kalmane, Thirthahalli</text>
+  <text x="1225" y="1065" font-size="15" fill="#94a3b8">  (13.6934° N, 75.2448° E)</text>
+  <text x="1225" y="1090" font-size="15" fill="#94a3b8">• 2,500 km Delivery Boundary Radius</text>
+  <text x="1225" y="1115" font-size="15" fill="#94a3b8">• Single-Event-per-Day Date Lock</text>
+  <text x="1225" y="1140" font-size="15" fill="#94a3b8">• Road Distance Logistics Surcharge</text>
+
+  <!-- Card 3.4 -->
+  <rect x="1740" y="945" width="510" height="255" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="1760" y="980" font-size="22" font-weight="bold" fill="#ffffff">Perishable Spoilage Daemon</text>
+  <text x="1760" y="1015" font-size="15" fill="#94a3b8">• Celery Asynchronous Task Engine</text>
+  <text x="1760" y="1040" font-size="15" fill="#94a3b8">• Scheduled Midnight 00:00 UTC Cron</text>
+  <text x="1760" y="1065" font-size="15" fill="#94a3b8">• FEFO Markdown Curve Depreciation:</text>
+  <text x="1760" y="1090" font-size="15" fill="#94a3b8">  - Fresh: 0% | Prime: 20%</text>
+  <text x="1760" y="1115" font-size="15" fill="#94a3b8">  - Clearance: 45% | Flash: 75%</text>
+  <text x="1760" y="1140" font-size="15" fill="#94a3b8">• Critical Spoilage SMTP Alert Relay</text>
+
+  <!-- ================= TIER 4 ================= -->
+  <rect x="100" y="1320" width="2200" height="480" rx="18" fill="#182235" stroke="#334155" stroke-width="2"/>
+  <text x="135" y="1365" font-size="26" font-weight="bold" fill="#38bdf8">TIER 4: PERSISTENCE, BROKER &amp; EXTERNAL INTEGRATIONS</text>
+  <text x="135" y="1395" font-size="16" fill="#94a3b8">ACID Relational Storage • In-Memory Task Broker &amp; Cache • Digital Payment Sandbox • Cartographic APIs</text>
+
+  <!-- Card 4.1 -->
+  <rect x="135" y="1420" width="510" height="340" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="155" y="1460" font-size="22" font-weight="bold" fill="#ffffff">MySQL 8.0 Relational Store</text>
+  <text x="155" y="1500" font-size="15" fill="#94a3b8">• 18 ACID Relational Tables</text>
+  <text x="155" y="1530" font-size="15" fill="#94a3b8">• Perishable Inventory Batches (FEFO)</text>
+  <text x="155" y="1560" font-size="15" fill="#94a3b8">• Orders, Line Items &amp; Bouquets</text>
+  <text x="155" y="1590" font-size="15" fill="#94a3b8">• Event Quotations with Unique Date Locks</text>
+  <text x="155" y="1620" font-size="15" fill="#94a3b8">• Foreign Key Referencing &amp; Cascade</text>
+  <text x="155" y="1650" font-size="15" fill="#94a3b8">• Botanical Datasets &amp; Care Library</text>
+  <text x="155" y="1680" font-size="15" fill="#94a3b8">• 730-Day Historical Sales Records</text>
+
+  <!-- Card 4.2 -->
+  <rect x="670" y="1420" width="510" height="340" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="690" y="1460" font-size="22" font-weight="bold" fill="#ffffff">Redis 7.0 In-Memory Store</text>
+  <text x="690" y="1500" font-size="15" fill="#94a3b8">• Celery Task Queue Message Broker</text>
+  <text x="690" y="1530" font-size="15" fill="#94a3b8">• Fast Key-Value Token Blacklist Cache</text>
+  <text x="690" y="1560" font-size="15" fill="#94a3b8">• Singleton Admin Session Lock Flag</text>
+  <text x="690" y="1590" font-size="15" fill="#94a3b8">• High-Throughput Sub-Millisecond Reads</text>
+  <text x="690" y="1620" font-size="15" fill="#94a3b8">• Distributed In-Flight State Pub/Sub</text>
+
+  <!-- Card 4.3 -->
+  <rect x="1205" y="1420" width="510" height="340" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="1225" y="1460" font-size="22" font-weight="bold" fill="#ffffff">Razorpay Sandbox Gateway</text>
+  <text x="1225" y="1500" font-size="15" fill="#94a3b8">• Digital Payment Order Creation</text>
+  <text x="1225" y="1530" font-size="15" fill="#94a3b8">• UPI, Cards, Net Banking Channels</text>
+  <text x="1225" y="1560" font-size="15" fill="#94a3b8">• Webhook Cryptographic Verification</text>
+  <text x="1225" y="1590" font-size="15" fill="#94a3b8">• Instant Payment Status Reconciliation</text>
+  <text x="1225" y="1620" font-size="15" fill="#94a3b8">• Automated GST Tax Invoice Trigger</text>
+
+  <!-- Card 4.4 -->
+  <rect x="1740" y="1420" width="510" height="340" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="1760" y="1460" font-size="22" font-weight="bold" fill="#ffffff">OpenStreetMap &amp; Leaflet Tile</text>
+  <text x="1760" y="1500" font-size="15" fill="#94a3b8">• Open Geographic Vector Cartography</text>
+  <text x="1760" y="1530" font-size="15" fill="#94a3b8">• Van Route Polyline Coordinates</text>
+  <text x="1760" y="1560" font-size="15" fill="#94a3b8">• Kalmane Central Depot Marker Staging</text>
+  <text x="1760" y="1590" font-size="15" fill="#94a3b8">• Client-Side Dynamic Map Tile Caching</text>
+  <text x="1760" y="1620" font-size="15" fill="#94a3b8">• High-Reliability Zero-Cost GIS Data</text>
+
+  <!-- ================= ARROWS (TOP TO BOTTOM) ================= -->
+  <!-- Tier 1 -> Tier 2 -->
+  <line x1="600" y1="430" x2="600" y2="520" stroke="#34d399" stroke-width="4" marker-end="url(#arrow-emerald)"/>
+  <rect x="615" y="465" width="460" height="30" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1"/>
+  <text x="625" y="485" font-size="14" font-weight="bold" fill="#34d399">HTTPS / REST (JSON API Requests via Axios)</text>
+
+  <!-- Tier 1 -> Tier 3 Direct WSS -->
+  <line x1="1995" y1="430" x2="1995" y2="850" stroke="#38bdf8" stroke-width="4" marker-end="url(#arrow-cyan)"/>
+  <rect x="1560" y="465" width="420" height="30" rx="6" fill="#0f172a" stroke="#38bdf8" stroke-width="1"/>
+  <text x="1570" y="485" font-size="14" font-weight="bold" fill="#38bdf8">WSS Socket (Bidirectional Socket.IO Telemetry)</text>
+
+  <!-- Tier 2 -> Tier 3 -->
+  <line x1="480" y1="760" x2="480" y2="850" stroke="#fbbf24" stroke-width="4" marker-end="url(#arrow-amber)"/>
+  <line x1="1200" y1="760" x2="1200" y2="850" stroke="#fbbf24" stroke-width="4" marker-end="url(#arrow-amber)"/>
+  <line x1="1920" y1="760" x2="1920" y2="850" stroke="#fbbf24" stroke-width="4" marker-end="url(#arrow-amber)"/>
+  <rect x="1000" y="795" width="400" height="30" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="1"/>
+  <text x="1010" y="815" font-size="14" font-weight="bold" fill="#fbbf24">Internal Blueprint Invocation &amp; Business Rules</text>
+
+  <!-- Tier 3 -> Tier 4 -->
+  <line x1="390" y1="1230" x2="390" y2="1320" stroke="#34d399" stroke-width="4" marker-end="url(#arrow-emerald)"/>
+  <line x1="925" y1="1230" x2="925" y2="1320" stroke="#34d399" stroke-width="4" marker-end="url(#arrow-emerald)"/>
+  <line x1="1460" y1="1230" x2="1460" y2="1320" stroke="#fbbf24" stroke-width="4" marker-end="url(#arrow-amber)"/>
+  <line x1="1995" y1="1230" x2="1995" y2="1320" stroke="#c084fc" stroke-width="4" marker-end="url(#arrow-purple)"/>
+
+</svg>
