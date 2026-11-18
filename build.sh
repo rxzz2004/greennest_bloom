@@ -7,6 +7,8 @@ echo " Green Nest Bloom - Unified Production Build "
 echo "=============================================="
 
 echo "Step 1: Installing frontend dependencies & building React SPA..."
+echo "Node runtime version: $(node -v || true)"
+echo "NPM package version:  $(npm -v || true)"
 cd frontend
 # Ensure devDependencies (vite, tailwind) are installed even if NODE_ENV=production
 npm install --include=dev
