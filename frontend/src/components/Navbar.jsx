@@ -169,7 +169,7 @@ export default function Navbar({
                   </span>
                 ) : null}
               </div>
-              <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium truncate max-w-[130px] sm:max-w-[290px]">
+              <p className="hidden sm:block text-[10px] sm:text-[11px] text-stone-500 font-medium truncate max-w-[130px] sm:max-w-[290px]">
                 {activeRole === 'corporate' 
                   ? 'Wholesale Requisitions'
                   : 'Kalmane, Thirthahalli 577432'}
@@ -223,12 +223,12 @@ export default function Navbar({
           )}
 
           {/* Quick Action Navigation Buttons */}
-          <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
+          <div className="flex items-center space-x-1 sm:space-x-2 shrink-0">
 
             {/* Shopper Actions (Only for Retail & Corporate Clients) */}
             {currentUser?.user_type !== 'admin' && (
               <>
-                {/* 1. CALENDAR BUTTON */}
+                {/* 1. CALENDAR BUTTON (Hidden on mobile < sm, accessible via user persona menu) */}
                 <button
                   id="nav-calendar-btn"
                   onClick={() => {
@@ -236,7 +236,7 @@ export default function Navbar({
                     onOpenReminders();
                   }}
                   title="Personal Occasion Reminders & Calendar"
-                  className={`flex items-center space-x-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition-all border shadow-xs ${
+                  className={`hidden sm:flex items-center space-x-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition-all border shadow-xs ${
                     currentTheme === 'dark'
                       ? 'bg-slate-800/80 hover:bg-slate-750 text-slate-200 border-slate-700'
                       : currentTheme === 'light'
@@ -250,7 +250,7 @@ export default function Navbar({
                   <span className="hidden md:inline">Calendar</span>
                 </button>
 
-                {/* 2. ORDERS BUTTON */}
+                {/* 2. ORDERS BUTTON (Hidden on mobile/tablet < md, accessible via user persona menu) */}
                 <button
                   id="nav-orders-btn"
                   onClick={() => {
@@ -258,7 +258,7 @@ export default function Navbar({
                     onOpenOrders();
                   }}
                   title="Order History & Tax Invoices"
-                  className={`flex items-center space-x-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition-all border shadow-xs ${
+                  className={`hidden md:flex items-center space-x-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition-all border shadow-xs ${
                     currentTheme === 'dark'
                       ? 'bg-slate-800/80 hover:bg-slate-750 text-slate-200 border-slate-700'
                       : currentTheme === 'light'
@@ -282,7 +282,7 @@ export default function Navbar({
                     if (onOpenWishlist) onOpenWishlist();
                   }}
                   title="Wishlist & Saved Bouquets"
-                  className={`relative flex items-center space-x-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition-all border shadow-xs ${
+                  className={`relative flex items-center space-x-1 sm:space-x-1.5 p-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition-all border shadow-xs shrink-0 ${
                     currentTheme === 'dark'
                       ? 'bg-slate-800/80 hover:bg-slate-750 text-slate-200 border-slate-700'
                       : currentTheme === 'light'
@@ -311,7 +311,7 @@ export default function Navbar({
                     onOpenCart();
                   }}
                   title="Shopping Cart"
-                  className={`relative flex items-center space-x-1.5 px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-white font-medium text-xs sm:text-sm shadow-md transition-all ${
+                  className={`relative flex items-center space-x-1 sm:space-x-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-white font-medium text-xs sm:text-sm shadow-md transition-all shrink-0 ${
                     activeRole === 'corporate' 
                       ? 'bg-indigo-900 hover:bg-indigo-800 shadow-indigo-900/20' 
                       : currentTheme === 'dark'
@@ -330,8 +330,8 @@ export default function Navbar({
               </>
             )}
 
-            {/* 5. THEME SELECTOR DROPDOWN */}
-            <div className="relative">
+            {/* 5. THEME SELECTOR DROPDOWN (Desktop lg only, accessible via user persona menu on mobile) */}
+            <div className="relative hidden lg:block">
               <button
                 id="theme-selector-btn"
                 onClick={() => {
@@ -355,67 +355,73 @@ export default function Navbar({
               </button>
 
               {showThemeMenu && (
-                <div className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-xl border p-2 z-50 text-xs animate-in fade-in zoom-in-95 ${
-                  currentTheme === 'dark'
-                    ? 'bg-slate-900 border-slate-700 text-slate-100'
-                    : currentTheme === 'light'
-                    ? 'bg-white border-stone-200 text-stone-800'
-                    : 'bg-white border-rose-200 text-[#37131e]'
-                }`}>
-                  <div className={`px-2 py-1.5 border-b mb-1 text-[10px] uppercase font-bold ${
-                    currentTheme === 'dark' ? 'border-slate-800 text-slate-400' : 'border-stone-100 text-stone-400'
+                <>
+                  <div 
+                    className="fixed inset-0 z-40 bg-transparent" 
+                    onClick={() => setShowThemeMenu(false)} 
+                  />
+                  <div className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-xl border p-2 z-50 text-xs animate-in fade-in zoom-in-95 ${
+                    currentTheme === 'dark'
+                      ? 'bg-slate-900 border-slate-700 text-slate-100'
+                      : currentTheme === 'light'
+                      ? 'bg-white border-stone-200 text-stone-800'
+                      : 'bg-white border-rose-200 text-[#37131e]'
                   }`}>
-                    Aesthetic Theme
+                    <div className={`px-2 py-1.5 border-b mb-1 text-[10px] uppercase font-bold ${
+                      currentTheme === 'dark' ? 'border-slate-800 text-slate-400' : 'border-stone-100 text-stone-400'
+                    }`}>
+                      Aesthetic Theme
+                    </div>
+                    {themeOptions.map((opt) => {
+                      const Icon = opt.icon;
+                      const isSelected = currentTheme === opt.id;
+                      return (
+                        <button
+                          key={opt.id}
+                          id={`theme-opt-${opt.id}`}
+                          onClick={() => {
+                            soundEffects.playClick();
+                            setTheme(opt.id);
+                            setShowThemeMenu(false);
+                          }}
+                          className={`w-full text-left p-2 rounded-xl flex items-center space-x-2.5 transition-colors ${
+                            isSelected
+                              ? opt.id === 'dark'
+                                ? 'bg-slate-800 text-cyan-300 font-bold border border-cyan-500/40'
+                                : opt.id === 'light'
+                                ? 'bg-emerald-50 text-emerald-950 font-bold border border-emerald-300'
+                                : 'bg-rose-50 text-rose-950 font-bold border border-rose-300'
+                              : currentTheme === 'dark'
+                              ? 'hover:bg-slate-800/60 text-slate-300'
+                              : 'hover:bg-stone-100 text-stone-700'
+                          }`}
+                        >
+                          <div className={`p-1.5 rounded-lg ${
+                            isSelected
+                              ? opt.id === 'dark'
+                                ? 'bg-cyan-900/60 text-cyan-300'
+                                : opt.id === 'light'
+                                ? 'bg-emerald-200 text-emerald-900'
+                                : 'bg-rose-200 text-rose-900'
+                              : currentTheme === 'dark'
+                              ? 'bg-slate-800 text-slate-400'
+                              : 'bg-stone-100 text-stone-600'
+                          }`}>
+                            <Icon className="w-3.5 h-3.5" />
+                          </div>
+                          <div>
+                            <div className="font-semibold">{opt.label}</div>
+                            <div className={`text-[10px] ${currentTheme === 'dark' ? 'text-slate-400' : 'text-stone-500'}`}>{opt.desc}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                  {themeOptions.map((opt) => {
-                    const Icon = opt.icon;
-                    const isSelected = currentTheme === opt.id;
-                    return (
-                      <button
-                        key={opt.id}
-                        id={`theme-opt-${opt.id}`}
-                        onClick={() => {
-                          soundEffects.playClick();
-                          setTheme(opt.id);
-                          setShowThemeMenu(false);
-                        }}
-                        className={`w-full text-left p-2 rounded-xl flex items-center space-x-2.5 transition-colors ${
-                          isSelected
-                            ? opt.id === 'dark'
-                              ? 'bg-slate-800 text-cyan-300 font-bold border border-cyan-500/40'
-                              : opt.id === 'light'
-                              ? 'bg-emerald-50 text-emerald-950 font-bold border border-emerald-300'
-                              : 'bg-rose-50 text-rose-950 font-bold border border-rose-300'
-                            : currentTheme === 'dark'
-                            ? 'hover:bg-slate-800/60 text-slate-300'
-                            : 'hover:bg-stone-100 text-stone-700'
-                        }`}
-                      >
-                        <div className={`p-1.5 rounded-lg ${
-                          isSelected
-                            ? opt.id === 'dark'
-                              ? 'bg-cyan-900/60 text-cyan-300'
-                              : opt.id === 'light'
-                              ? 'bg-emerald-200 text-emerald-900'
-                              : 'bg-rose-200 text-rose-900'
-                            : currentTheme === 'dark'
-                            ? 'bg-slate-800 text-slate-400'
-                            : 'bg-stone-100 text-stone-600'
-                        }`}>
-                          <Icon className="w-3.5 h-3.5" />
-                        </div>
-                        <div>
-                          <div className="font-semibold">{opt.label}</div>
-                          <div className={`text-[10px] ${currentTheme === 'dark' ? 'text-slate-400' : 'text-stone-500'}`}>{opt.desc}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                </>
               )}
             </div>
 
-            {/* User Persona & Account Menu */}
+            {/* User Persona & Account Menu (Always visible & prominent on mobile & desktop) */}
             {!isLoggedIn ? (
               <button
                 id="nav-signin-btn"
@@ -423,65 +429,104 @@ export default function Navbar({
                   soundEffects.playClick();
                   onOpenLogin();
                 }}
-                className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold shadow-xs transition-all"
+                className="flex items-center space-x-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold shadow-xs transition-all shrink-0 cursor-pointer"
               >
-                <LogIn className="w-3.5 h-3.5 text-pink-300" />
+                <LogIn className="w-3.5 h-3.5 text-pink-300 shrink-0" />
                 <span>Sign In</span>
               </button>
             ) : (
-              <div className="relative">
+              <div className="relative shrink-0">
                 <button
+                  id="nav-user-profile-btn"
                   onClick={() => {
                     soundEffects.playClick();
                     setShowPersonaMenu(!showPersonaMenu);
                   }}
-                  className="flex items-center space-x-2 p-2 rounded-xl bg-stone-100 hover:bg-stone-200/80 border border-stone-200 text-stone-800 text-xs font-medium transition-colors"
+                  className="flex items-center space-x-1.5 sm:space-x-2 px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-stone-100 dark:bg-slate-800 hover:bg-stone-200/80 dark:hover:bg-slate-700 border border-stone-200 dark:border-slate-700 text-stone-800 dark:text-stone-100 text-xs font-medium transition-colors shrink-0 cursor-pointer shadow-xs"
                 >
-                  <div className={`w-2 h-2 rounded-full ${
+                  <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                     activeRole === 'admin' 
                       ? 'bg-emerald-500 ring-2 ring-emerald-300' 
                       : activeRole === 'corporate' 
                       ? 'bg-indigo-600 ring-2 ring-indigo-300' 
                       : 'bg-pink-500 ring-2 ring-pink-300'
                   }`} />
-                  <span className="font-bold max-w-[100px] truncate">
-                    {currentUser?.full_name?.split(' ')[0] || 'User'}
+                  <span className="font-bold max-w-[65px] sm:max-w-[100px] truncate text-xs">
+                    {currentUser?.full_name?.split(' ')[0] || 'Account'}
                   </span>
-                  <ChevronDown className="w-3 h-3 text-stone-500" />
+                  <ChevronDown className="w-3.5 h-3.5 text-stone-400 shrink-0" />
                 </button>
 
                 {showPersonaMenu && (
-                  <div className={`absolute right-0 mt-2 w-72 rounded-2xl shadow-2xl border p-2 z-50 text-xs animate-in fade-in zoom-in-95 ${
-                    currentTheme === 'dark'
-                      ? 'bg-slate-900 border-slate-700 text-slate-100'
-                      : currentTheme === 'light'
-                      ? 'bg-white border-stone-200 text-stone-900'
-                      : 'bg-white border-rose-200 text-[#37131e]'
-                  }`}>
-                    {/* 1. USER NAME & EMAIL */}
-                    <div className={`p-2.5 border-b mb-1 ${
-                      currentTheme === 'dark' ? 'border-slate-800' : 'border-stone-100'
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40 bg-black/10 backdrop-blur-2xs" 
+                      onClick={() => setShowPersonaMenu(false)} 
+                    />
+                    <div className={`absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-72 rounded-2xl shadow-2xl border p-2 z-50 text-xs animate-in fade-in zoom-in-95 ${
+                      currentTheme === 'dark'
+                        ? 'bg-slate-900 border-slate-700 text-slate-100'
+                        : currentTheme === 'light'
+                        ? 'bg-white border-stone-200 text-stone-900'
+                        : 'bg-white border-rose-200 text-[#37131e]'
                     }`}>
-                      <div className="flex items-center space-x-2.5">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
-                          currentTheme === 'dark' 
-                            ? 'bg-slate-800 text-cyan-400' 
-                            : currentTheme === 'light'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : 'bg-rose-100 text-rose-800'
-                        }`}>
-                          <User className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <strong className={`block truncate font-bold text-sm ${currentTheme === 'dark' ? 'text-white' : 'text-stone-900'}`}>
-                            {currentUser?.full_name || 'Individual User'}
-                          </strong>
-                          <span className="text-stone-500 font-mono text-[10px] block truncate">
-                            {currentUser?.email || 'user@greennestbloom.com'}
-                          </span>
+                      {/* 1. USER NAME & EMAIL */}
+                      <div className={`p-2.5 border-b mb-1 ${
+                        currentTheme === 'dark' ? 'border-slate-800' : 'border-stone-100'
+                      }`}>
+                        <div className="flex items-center space-x-2.5">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                            currentTheme === 'dark' 
+                              ? 'bg-slate-800 text-cyan-400' 
+                              : currentTheme === 'light'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}>
+                            <User className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <strong className={`block truncate font-bold text-sm ${currentTheme === 'dark' ? 'text-white' : 'text-stone-900'}`}>
+                              {currentUser?.full_name || 'Individual User'}
+                            </strong>
+                            <span className="text-stone-500 font-mono text-[10px] block truncate">
+                              {currentUser?.email || 'user@greennestbloom.com'}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
+
+                      {/* MOBILE QUICK LINKS (Orders, Calendar, Theme for mobile viewports) */}
+                      <div className="md:hidden p-1 border-b mb-1 space-y-1">
+                        <button
+                          onClick={() => {
+                            setShowPersonaMenu(false);
+                            soundEffects.playClick();
+                            onOpenOrders();
+                          }}
+                          className={`w-full text-left p-2 rounded-xl flex items-center space-x-2 transition-colors cursor-pointer ${
+                            currentTheme === 'dark' ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-stone-100 text-stone-800'
+                          }`}
+                        >
+                          <ReceiptText className="w-4 h-4 text-rose-600 shrink-0" />
+                          <span className="font-semibold text-xs flex-1">
+                            {activeRole === 'corporate' ? 'GST Tax Invoices' : 'My Orders & Invoices'}
+                          </span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setShowPersonaMenu(false);
+                            soundEffects.playClick();
+                            onOpenReminders();
+                          }}
+                          className={`w-full text-left p-2 rounded-xl flex items-center space-x-2 transition-colors cursor-pointer ${
+                            currentTheme === 'dark' ? 'hover:bg-slate-800 text-slate-200' : 'hover:bg-stone-100 text-stone-800'
+                          }`}
+                        >
+                          <CalendarHeart className="w-4 h-4 text-rose-500 shrink-0" />
+                          <span className="font-semibold text-xs flex-1">Occasion Reminders</span>
+                        </button>
+                      </div>
 
                     {/* 2. SUBSCRIPTION NAME (Omitted for Admins) */}
                     {!isAdminUser && (
