@@ -543,6 +543,11 @@ export default function BouquetBuilder7Step({ onAddToCart, isOpen, onClose }) {
                   <span>Artisan Handcrafted</span>
                 </div>
 
+                {/* Reference Preview Badge */}
+                <div className="absolute top-10 right-3 bg-stone-900/75 backdrop-blur-xs text-stone-200 text-[9px] font-medium px-2 py-0.5 rounded-md border border-white/10 shadow-xs">
+                  Reference Image
+                </div>
+
                 {/* Fragrance Mist Badge if Infused */}
                 {config.fragrance_id && config.fragrance_id !== 'unscented' && (
                   <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md text-stone-800 text-[10px] font-semibold px-2.5 py-1 rounded-full shadow-xs border border-stone-200/60 flex items-center gap-1.5">
@@ -552,7 +557,7 @@ export default function BouquetBuilder7Step({ onAddToCart, isOpen, onClose }) {
                 )}
 
                 {/* Floating Specs Pill at Bottom of Photo */}
-                <div className="absolute bottom-3 inset-x-3 bg-white/95 backdrop-blur-md rounded-xl p-2.5 border border-white/60 shadow-lg text-xs space-y-0.5">
+                <div className="absolute bottom-3 inset-x-3 bg-white/95 backdrop-blur-md rounded-xl p-2.5 border border-white/60 shadow-lg text-xs space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-stone-900 truncate">
                       {currentFocal?.name || 'Handcrafted Flowers'}
@@ -565,6 +570,9 @@ export default function BouquetBuilder7Step({ onAddToCart, isOpen, onClose }) {
                     <span>{currentWrapping?.name || 'Matte Kraft Wrap'}</span>
                     <span>•</span>
                     <span>{currentStyle?.name || 'Classic Dome'}</span>
+                  </p>
+                  <p className="text-[10px] text-stone-400 italic pt-0.5 border-t border-stone-100 flex items-center justify-between">
+                    <span>* Reference image only. Actual handcrafted bouquet may vary naturally.</span>
                   </p>
                 </div>
 
