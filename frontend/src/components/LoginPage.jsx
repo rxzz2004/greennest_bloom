@@ -201,14 +201,6 @@ export default function LoginPage({
       setLoading(false);
     }
   };
-        }, 700);
-      }
-    } catch (err) {
-      setErrorMsg('Failed to complete registration. Please check all fields.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div
