@@ -88,12 +88,28 @@ class VenueClassifierService:
         color_variance = sum(rgb_stds) / 3.0
 
         # 5. Non-Venue Detection Heuristics
+        import numpy as np
+        gray_arr = np.array(grayscale)
+
+        # Document / Certificate / Scanned Paper Detection:
+        # Physical documents and certificates have large continuous fields of paper (luminance > 200)
+        # interspersed with high-contrast text strokes (luminance < 85)
+        # and very low mid-tone representation (85-200) compared to natural 3D rooms.
+        p_white = float(np.mean(gray_arr > 200))
+        p_near_white = float(np.mean(gray_arr > 220))
+        p_dark = float(np.mean(gray_arr < 85))
+        p_mid = float(np.mean((gray_arr >= 85) & (gray_arr <= 200)))
+        bimodal_doc_ratio = p_white + p_dark
+
+        is_document = (
+            (p_white > 0.38 and p_mid < 0.35) or
+            (p_near_white > 0.45) or
+            (bimodal_doc_ratio > 0.75 and p_mid < 0.25 and edge_density > 5.0) or
+            (overall_mean > 210 and overall_std < 50.0)
+        )
+
         # Check A: Flat / Blank document or screenshot
         is_flat_or_blank = overall_std < 18.0 and edge_density < 6.0
-        
-        # Check B: High text-like density / scanned paper (very high edge density with white background)
-        overall_mean = overall_stat.mean[0]
-        is_document = overall_mean > 230 and edge_density > 25.0
 
         # Check C: Single object or close-up macro (low edge density in periphery, high in center)
         center_box = grayscale.crop((int(width * 0.25), int(height * 0.25), int(width * 0.75), int(height * 0.75)))
@@ -102,7 +118,6 @@ class VenueClassifierService:
         is_isolated_macro = edge_ratio > 2.8 and is_portrait
 
         # Check D: Skin tone concentration (Selfie / Portrait check)
-        import numpy as np
         sample_arr = np.array(img.resize((100, 100), Image.Resampling.BILINEAR), dtype=int)
         r_ch, g_ch, b_ch = sample_arr[:, :, 0], sample_arr[:, :, 1], sample_arr[:, :, 2]
         max_ch = np.maximum(np.maximum(r_ch, g_ch), b_ch)
@@ -111,7 +126,71 @@ class VenueClassifierService:
         skin_ratio = float(np.sum(skin_mask)) / 10000.0
         is_portrait_person = skin_ratio > 0.45
 
-        # Scoring Logic
+        # STRICT NON-VENUE REJECTION
+        # If an image is definitively a document, certificate, portrait person, or flat blank graphic,
+        # it must NOT be classified as a venue regardless of aspect ratio or edge density.
+        if is_document:
+            return {
+                "is_venue": False,
+                "confidence": 0.05,
+                "detected_type": "Document / Certificate / Graphic",
+                "message": "This image appears to be a certificate, document, or printed text sheet with flat paper background, not an architectural event venue. Architectural staging requires an actual photograph of a banquet hall, ballroom, stage, or lawn.",
+                "attributes": {
+                    "dimensions": f"{width}x{height}",
+                    "aspect_ratio": f"{aspect_ratio}:1",
+                    "is_landscape": is_landscape,
+                    "white_paper_percentage": f"{round(p_white * 100, 1)}%",
+                    "edge_density": round(edge_density, 1),
+                    "lighting_depth": "flat_paper"
+                }
+            }
+
+        if is_portrait_person:
+            return {
+                "is_venue": False,
+                "confidence": 0.10,
+                "detected_type": "Portrait / Human Photo",
+                "message": "Image appears to be a portrait or person rather than a venue space. Please upload a photo of a ballroom, stage, or hall.",
+                "attributes": {
+                    "dimensions": f"{width}x{height}",
+                    "aspect_ratio": f"{aspect_ratio}:1",
+                    "is_landscape": is_landscape,
+                    "edge_density": round(edge_density, 1),
+                    "lighting_depth": "portrait"
+                }
+            }
+
+        if is_flat_or_blank:
+            return {
+                "is_venue": False,
+                "confidence": 0.05,
+                "detected_type": "Flat Graphic / Blank Screen",
+                "message": "Image lacks architectural features, lighting, or spatial perspective lines required for realistic floral staging.",
+                "attributes": {
+                    "dimensions": f"{width}x{height}",
+                    "aspect_ratio": f"{aspect_ratio}:1",
+                    "is_landscape": is_landscape,
+                    "edge_density": round(edge_density, 1),
+                    "lighting_depth": "flat"
+                }
+            }
+
+        if is_isolated_macro:
+            return {
+                "is_venue": False,
+                "confidence": 0.15,
+                "detected_type": "Close-Up Object / Macro",
+                "message": "Image appears to be an isolated close-up object rather than a full venue space.",
+                "attributes": {
+                    "dimensions": f"{width}x{height}",
+                    "aspect_ratio": f"{aspect_ratio}:1",
+                    "is_landscape": is_landscape,
+                    "edge_density": round(edge_density, 1),
+                    "lighting_depth": "macro"
+                }
+            }
+
+        # Scoring Logic for potential venue images
         venue_score = 0.50
 
         # Landscape bonus (typical of event halls and stages)
@@ -139,41 +218,17 @@ class VenueClassifierService:
         elif color_variance < 10.0:
             venue_score -= 0.25
 
-        # Penalties for non-venue signals
-        if is_flat_or_blank:
-            venue_score -= 0.60
-        if is_document:
-            venue_score -= 0.60
-        if is_portrait_person:
-            venue_score -= 0.55
-        if is_isolated_macro:
-            venue_score -= 0.35
-
         confidence = max(0.05, min(0.98, round(venue_score, 2)))
         is_venue = confidence >= 0.55
 
-        # Determine Category Label
-        if is_venue:
-            if is_landscape and aspect_ratio >= 1.4:
-                detected_type = "Banquet Ballroom & Panoramic Stage"
-            elif top_mean > bot_mean and color_variance > 30:
-                detected_type = "Outdoor Garden Pavilion or Lawn"
-            else:
-                detected_type = "Indoor Event Hall & Architectural Venue"
-            message = "Verified venue architecture. Spatial perspective and lighting zones are optimal for floral inpainting."
+        # Determine Category Label for Verified Venues
+        if is_landscape and aspect_ratio >= 1.4:
+            detected_type = "Banquet Ballroom & Panoramic Stage"
+        elif top_mean > bot_mean and color_variance > 30:
+            detected_type = "Outdoor Garden Pavilion or Lawn"
         else:
-            if is_portrait_person:
-                detected_type = "Portrait / Human Photo"
-                message = "Image appears to be a portrait or person rather than a venue. Please upload a ballroom, stage, or hall photo."
-            elif is_document or is_flat_or_blank:
-                detected_type = "Document / Flat Graphic"
-                message = "Image appears to be a graphic or document with insufficient architectural depth."
-            elif is_isolated_macro:
-                detected_type = "Close-Up Object / Macro"
-                message = "Image appears to be an isolated close-up object rather than a full venue space."
-            else:
-                detected_type = "Non-Venue Image"
-                message = "Image lacks sufficient architectural perspective lines or spatial depth for realistic floral staging."
+            detected_type = "Indoor Event Hall & Architectural Venue"
+        message = "Verified venue architecture. Spatial perspective and lighting zones are optimal for floral inpainting."
 
         return {
             "is_venue": is_venue,

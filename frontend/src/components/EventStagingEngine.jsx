@@ -258,13 +258,40 @@ export default function EventStagingEngine({ user, onQuoteSubmitted, currentThem
             override: false
           });
           soundEffects.playSuccessChime();
+
+          // Auto-trigger inpainting synthesis ONLY for verified architectural venues
+          setIsStagingLoading(true);
+          setStagingStep('Synthesizing floral installation & ambient lighting on verified venue...');
+          try {
+            const inpaintRes = await api.generateStagingPreview(
+              selectedTemplate,
+              stagingPrompt,
+              maskArea,
+              dataUrl
+            );
+            if (inpaintRes && inpaintRes.staged_result_image) {
+              setStagedPreview(inpaintRes);
+              setViewMode('split');
+              setSliderPos(50);
+              soundEffects.playBloomChime();
+            }
+          } catch (err) {
+            console.error('Auto-inpaint error:', err);
+          } finally {
+            setIsStagingLoading(false);
+            setStagingStep('');
+          }
         } else {
+          // NON-VENUE DETECTED (Certificate, Document, Portrait, Graphic):
+          // Stop immediately and display classification warning; DO NOT inpaint decor onto documents
           setVenueValidation({
             isAnalyzing: false,
             status: 'non_venue',
             result: res,
             override: false
           });
+          setStagedPreview(null);
+          soundEffects.playClick();
         }
       } catch (err) {
         console.error('Venue validation error:', err);
@@ -274,29 +301,6 @@ export default function EventStagingEngine({ user, onQuoteSubmitted, currentThem
           result: { message: 'Image analysis could not complete, but staging is available.' },
           override: true
         });
-      }
-
-      // Auto-trigger inpainting synthesis onto the uploaded photo
-      setIsStagingLoading(true);
-      setStagingStep('Synthesizing floral installation & ambient lighting on uploaded photo...');
-      try {
-        const inpaintRes = await api.generateStagingPreview(
-          selectedTemplate,
-          stagingPrompt,
-          maskArea,
-          dataUrl
-        );
-        if (inpaintRes && inpaintRes.staged_result_image) {
-          setStagedPreview(inpaintRes);
-          setViewMode('split');
-          setSliderPos(50);
-          soundEffects.playBloomChime();
-        }
-      } catch (err) {
-        console.error('Auto-inpaint error:', err);
-      } finally {
-        setIsStagingLoading(false);
-        setStagingStep('');
       }
     };
 
@@ -1031,8 +1035,9 @@ export default function EventStagingEngine({ user, onQuoteSubmitted, currentThem
                             onClick={() => {
                               soundEffects.playClick();
                               setVenueValidation((prev) => ({ ...prev, override: true, status: 'verified' }));
+                              handleRunInpainting();
                             }}
-                            className="px-3 py-1 rounded-lg bg-white border border-amber-300 text-amber-900 font-semibold text-[11px] hover:bg-amber-100/50 transition-colors"
+                            className="px-3 py-1 rounded-lg bg-white border border-amber-300 text-amber-900 font-semibold text-[11px] hover:bg-amber-100/50 transition-colors cursor-pointer"
                           >
                             Override & Stage Anyway
                           </button>
