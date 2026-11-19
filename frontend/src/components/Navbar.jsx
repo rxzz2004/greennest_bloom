@@ -117,7 +117,7 @@ export default function Navbar({
                 className="hidden sm:flex items-center space-x-1 text-indigo-300 hover:text-white transition-colors"
               >
                 <PhoneCall className="w-3 h-3" />
-                <span>Priority Florist Hotline</span>
+                <span>Priority Customer Care</span>
               </a>
             </div>
           </div>
@@ -167,11 +167,7 @@ export default function Navbar({
                   <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-stone-900 text-emerald-300 border border-stone-800 shrink-0">
                     Admin
                   </span>
-                ) : (
-                  <span className="hidden xs:inline-block sm:inline-block text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-pink-100 text-pink-900 border border-pink-300/60 shrink-0">
-                    Florist
-                  </span>
-                )}
+                ) : null}
               </div>
               <p className="text-[10px] sm:text-[11px] text-stone-500 font-medium truncate max-w-[130px] sm:max-w-[290px]">
                 {activeRole === 'corporate' 
@@ -201,7 +197,7 @@ export default function Navbar({
                     : 'text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
                 }`}
               >
-                Florist (B2C)
+                {currentUser?.full_name || 'Personal'}
               </button>
               <button
                 onClick={() => {
