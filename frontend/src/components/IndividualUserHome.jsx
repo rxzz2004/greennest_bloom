@@ -252,8 +252,6 @@ export default function IndividualUserHome({
   // Product Detail View state
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [selectedPotOption, setSelectedPotOption] = useState(AVAILABLE_POT_OPTIONS[0]);
-  const [potMaterialFilter, setPotMaterialFilter] = useState('all');
   const [livingPlantFilter, setLivingPlantFilter] = useState('all');
   const [isFavorited, setIsFavorited] = useState(false);
   const [internalFavoritesList, setInternalFavoritesList] = useState([]);
@@ -923,46 +921,8 @@ export default function IndividualUserHome({
     });
   }, [fullCatalogue, catalogueFilter, searchQuery]);
 
-  // Filtered pot options based on material tab filter (ensures 'none' free nursery bag is always accessible)
-  const filteredPotOptions = useMemo(() => {
-    if (potMaterialFilter === 'all') return AVAILABLE_POT_OPTIONS;
-    return AVAILABLE_POT_OPTIONS.filter(
-      (pot) => pot.id === 'none' || pot.materialCategory === potMaterialFilter
-    );
-  }, [potMaterialFilter]);
-
-  // Living plant predicate for optional planter pot selection
-  const isLivingPlant = Boolean(
-    selectedProduct &&
-    selectedProduct.category !== 'planters' &&
-    selectedProduct.category !== 'planter' &&
-    selectedProduct.category !== 'accessory' &&
-    (
-      ['potted_plants', 'potted_plant', 'fruit_plants', 'fruit_plant', 'vegetables', 'vegetable_plant', 'herbs', 'herb'].includes(selectedProduct.category) ||
-      (selectedProduct.specs && selectedProduct.specs.toLowerCase().includes('live')) ||
-      (selectedProduct.tag && (
-        selectedProduct.tag.toLowerCase().includes('nursery') ||
-        selectedProduct.tag.toLowerCase().includes('living') ||
-        selectedProduct.tag.toLowerCase().includes('tree') ||
-        selectedProduct.tag.toLowerCase().includes('herb') ||
-        selectedProduct.tag.toLowerCase().includes('garden')
-      )) ||
-      (selectedProduct.name && (
-        selectedProduct.name.toLowerCase().includes('plant') ||
-        selectedProduct.name.toLowerCase().includes('sapling') ||
-        selectedProduct.name.toLowerCase().includes('rhizome') ||
-        selectedProduct.name.toLowerCase().includes('monstera') ||
-        selectedProduct.name.toLowerCase().includes('fig') ||
-        selectedProduct.name.toLowerCase().includes('palm') ||
-        selectedProduct.name.toLowerCase().includes('vine') ||
-        selectedProduct.name.toLowerCase().includes('croton')
-      ))
-    )
-  );
-
-  // Dynamic price calculations including optional pot selection
-  const potAddonInr = isLivingPlant && selectedPotOption ? (selectedPotOption.inrPrice || 0) : 0;
-  const unitPriceInr = (selectedProduct?.inrPrice || selectedProduct?.price || 0) + potAddonInr;
+  // Dynamic price calculations
+  const unitPriceInr = selectedProduct?.inrPrice || selectedProduct?.price || 0;
   const totalPriceInr = unitPriceInr * quantity;
 
   // Slice catalogue items based on visibleCount for "View More" pagination
@@ -996,8 +956,6 @@ export default function IndividualUserHome({
     soundEffects.playClick();
     setSelectedProduct(item);
     setQuantity(1);
-    setSelectedPotOption(AVAILABLE_POT_OPTIONS[0]);
-    setPotMaterialFilter('all');
     setIsFavorited(favoritesList.includes(item.id));
   };
 
@@ -2554,7 +2512,7 @@ export default function IndividualUserHome({
                       </span>
                       {selectedProduct.originalPrice && selectedProduct.originalPrice > (selectedProduct.inrPrice || selectedProduct.price) && (
                         <span className="text-sm text-stone-400 line-through">
-                          ₹{(selectedProduct.originalPrice + potAddonInr).toLocaleString()}
+                          ₹{selectedProduct.originalPrice.toLocaleString()}
                         </span>
                       )}
                       {selectedProduct.hasDecayDiscount && (
@@ -2566,11 +2524,6 @@ export default function IndividualUserHome({
                     {selectedProduct.hasDecayDiscount && (
                       <span className="text-[11px] font-medium text-rose-700 dark:text-rose-400 block mt-0.5">
                         Biological Freshness Clearance Markdown Applied
-                      </span>
-                    )}
-                    {potAddonInr > 0 && (
-                      <span className="text-emerald-700 dark:text-emerald-400 font-semibold block text-[11px] mt-0.5">
-                        includes +₹{potAddonInr} ({selectedPotOption.name})
                       </span>
                     )}
                   </div>
@@ -2656,147 +2609,7 @@ export default function IndividualUserHome({
 
             </div>
 
-            {/* ========================================================= */}
-            {/* OPTIONAL PLANTER POT SELECTOR (For Living / Potted Plants) */}
-            {/* ========================================================= */}
-            {isLivingPlant && (
-              <div className={`my-5 p-4 sm:p-5 rounded-2xl border transition-colors ${currentTheme === 'dark'
-                  ? 'bg-slate-800/60 border-slate-700 text-slate-100'
-                  : currentTheme === 'light'
-                    ? 'bg-stone-50 border-stone-200 text-stone-900'
-                    : 'bg-rose-50/50 border-pink-200 text-stone-900'
-                }`}>
-                {/* Header & Optional Notice */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-200/60 dark:border-slate-700">
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <h4 className="text-sm font-bold tracking-tight">
-                        Choose Your Planter Pot <span className="text-emerald-700 dark:text-emerald-400 font-normal">(Optional Upgrade)</span>
-                      </h4>
-                    </div>
-                    <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-0.5">
-                      Standard Nursery Grow Bag is included free (+₹0). Or select from our curated mud, plastic, glass, or ceramic pots below.
-                    </p>
-                  </div>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 self-start sm:self-auto shrink-0">
-                    Free Grow Bag Included
-                  </span>
-                </div>
 
-                {/* Pot Material Category Filter Tabs */}
-                <div className="flex flex-wrap items-center gap-1.5 pt-3 pb-3">
-                  {[
-                    { id: 'all', label: 'All Planters' },
-                    { id: 'mud', label: 'Terracotta Mud (#1 Best Seller)' },
-                    { id: 'plastic', label: 'Plastic Pots' },
-                    { id: 'glass', label: 'Glass Bowls' },
-                    { id: 'ceramic', label: 'Ceramic Pots' }
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setPotMaterialFilter(tab.id)}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${potMaterialFilter === tab.id
-                          ? currentTheme === 'dark'
-                            ? 'bg-cyan-500 text-slate-950 font-bold shadow-xs'
-                            : 'bg-emerald-800 text-white font-bold shadow-xs'
-                          : currentTheme === 'dark'
-                            ? 'bg-slate-700/60 text-slate-300 hover:bg-slate-700'
-                            : 'bg-white text-stone-600 hover:bg-stone-200/70 border border-stone-200'
-                        }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Pot Options Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-64 overflow-y-auto pr-1">
-                  {filteredPotOptions.map((opt) => {
-                    const isSelected = selectedPotOption?.id === opt.id;
-                    const isMudBestSeller = opt.materialCategory === 'mud' && opt.quality.includes('Standard');
-
-                    return (
-                      <div
-                        key={opt.id}
-                        onClick={() => {
-                          soundEffects.playClick();
-                          setSelectedPotOption(opt);
-                        }}
-                        className={`p-3 rounded-xl border text-left cursor-pointer transition-all relative ${isSelected
-                            ? currentTheme === 'dark'
-                              ? 'bg-cyan-950/40 border-cyan-400 ring-2 ring-cyan-500/30'
-                              : 'bg-emerald-50/90 border-emerald-700 ring-2 ring-emerald-600/20'
-                            : currentTheme === 'dark'
-                              ? 'bg-slate-800 border-slate-700 hover:border-slate-600'
-                              : 'bg-white border-stone-200 hover:border-stone-300'
-                          }`}
-                      >
-                        {/* Header: Radio Indicator & Name */}
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center space-x-2">
-                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${isSelected
-                                ? currentTheme === 'dark'
-                                  ? 'border-cyan-400 bg-cyan-400 text-slate-950'
-                                  : 'border-emerald-700 bg-emerald-700 text-white'
-                                : 'border-stone-300 dark:border-slate-600'
-                              }`}>
-                              {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                            </div>
-                            <span className="text-xs font-bold leading-tight">
-                              {opt.name}
-                            </span>
-                          </div>
-
-                          {/* Price Tag */}
-                          <span className={`text-xs font-mono font-bold shrink-0 ${opt.inrPrice === 0
-                              ? 'text-emerald-700 dark:text-emerald-400'
-                              : currentTheme === 'dark' ? 'text-white' : 'text-stone-900'
-                            }`}>
-                            {opt.inrPrice === 0 ? '+₹0 Free' : `+₹${opt.inrPrice}`}
-                          </span>
-                        </div>
-
-                        {/* Badges & Specs */}
-                        <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                          {opt.tag && (
-                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${isMudBestSeller
-                                ? 'bg-amber-100 text-amber-900 border border-amber-300 font-black dark:bg-amber-950/80 dark:text-amber-200 dark:border-amber-700'
-                                : opt.id === 'none'
-                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                                  : 'bg-stone-100 text-stone-700 dark:bg-slate-700 dark:text-slate-300'
-                              }`}>
-                              {opt.tag}
-                            </span>
-                          )}
-                          <span className="text-[10px] text-stone-500 dark:text-slate-400">
-                            {opt.size} • {opt.quality}
-                          </span>
-                        </div>
-
-                        {/* Description */}
-                        <p className="text-[11px] text-stone-500 dark:text-slate-400 mt-1.5 leading-tight line-clamp-2">
-                          {opt.description}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Active Selection Summary Banner */}
-                <div className="mt-3 pt-2.5 border-t border-stone-200/60 dark:border-slate-700 flex items-center justify-between text-xs">
-                  <div className="flex items-center space-x-1.5">
-                    <span className="font-semibold text-stone-500 dark:text-slate-400">Selected Pot:</span>
-                    <span className="font-bold text-stone-900 dark:text-white">
-                      {selectedPotOption?.name || 'Standard Nursery Grow Bag'}
-                    </span>
-                  </div>
-                  <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                    {potAddonInr === 0 ? 'Included Free (+₹0)' : `Adds +₹${potAddonInr}`}
-                  </span>
-                </div>
-              </div>
-            )}
 
             {/* ========================================================= */}
             {/* VERIFIED CUSTOMER REVIEWS & PHOTO GALLERY                 */}
@@ -3097,32 +2910,21 @@ export default function IndividualUserHome({
                     return;
                   }
                   soundEffects.playStemSnip();
-                  const itemPotName = selectedPotOption && selectedPotOption.id !== 'none'
-                    ? selectedPotOption.name
-                    : 'Standard Nursery Grow Bag (Free)';
-
                   onAddToCart({
-                    id: selectedPotOption?.id && selectedPotOption.id !== 'none'
-                      ? `${selectedProduct.id}__pot_${selectedPotOption.id}`
-                      : selectedProduct.id,
+                    id: selectedProduct.id,
                     original_product_id: selectedProduct.id,
-                    name: selectedPotOption?.id && selectedPotOption.id !== 'none'
-                      ? `${selectedProduct.name} (with ${selectedPotOption.name})`
-                      : selectedProduct.name,
-                    base_price: (selectedProduct?.originalPrice || selectedProduct?.base_price || unitPriceInr) + potAddonInr,
+                    name: selectedProduct.name,
+                    base_price: selectedProduct?.originalPrice || selectedProduct?.base_price || unitPriceInr,
                     effective_price: unitPriceInr,
                     price: unitPriceInr,
-                    original_price: selectedProduct?.originalPrice ? (selectedProduct.originalPrice + potAddonInr) : null,
+                    original_price: selectedProduct?.originalPrice || null,
                     decay_discount_percent: selectedProduct?.decayDiscountPercent || 0,
                     has_decay_discount: selectedProduct?.hasDecayDiscount || false,
                     image_url: selectedProduct.image || selectedProduct.image_url,
-                    quantity: quantity,
-                    selected_pot: selectedPotOption,
-                    pot_name: itemPotName,
-                    pot_addon_inr: potAddonInr
+                    quantity: quantity
                   });
                   setToastMessage(
-                    `Added ${quantity} × ${selectedProduct.name}${selectedPotOption?.id !== 'none' ? ` with ${selectedPotOption.name}` : ''} to Basket!`
+                    `Added ${quantity} × ${selectedProduct.name} to Basket!`
                   );
                   setSelectedProduct(null);
                   setTimeout(() => setToastMessage(null), 2500);
