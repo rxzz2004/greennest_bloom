@@ -35,152 +35,6 @@ import {
 import { soundEffects } from '../utils/audio';
 import SubscriptionManager from './SubscriptionManager';
 import { calculateDeliveryEstimate, POPULAR_DELIVERY_HUBS } from '../utils/deliveryCalculator';
-export const AVAILABLE_POT_OPTIONS = [
-  {
-    id: 'none',
-    name: 'Standard Nursery Grow Bag',
-    material: 'Nursery Polybag',
-    materialCategory: 'none',
-    size: 'Standard Nursery Size',
-    quality: 'Included Free',
-    inrPrice: 0,
-    tag: 'Default • Free',
-    badge: 'Included Free',
-    description: 'Breathable nursery grow bag with bottom drainage, potted in organic nutrient compost.'
-  },
-  {
-    id: 'mud_standard_8',
-    name: 'Classic Baked Mud Pot (8" Medium)',
-    material: 'Natural Terracotta',
-    materialCategory: 'mud',
-    size: 'Medium (8 Inch)',
-    quality: 'Standard Quality',
-    inrPrice: 140,
-    tag: '#1 Highest Selling',
-    badge: 'Best Seller',
-    description: 'Breathable Indian earthenware clay; optimal natural porosity for healthy root aeration.'
-  },
-  {
-    id: 'mud_standard_12',
-    name: 'Classic Baked Mud Pot (12" Big)',
-    material: 'Natural Terracotta',
-    materialCategory: 'mud',
-    size: 'Big (12 Inch)',
-    quality: 'Standard Quality',
-    inrPrice: 240,
-    tag: 'Top Seller for Large Plants',
-    badge: 'Top Seller',
-    description: 'Large porous earthen pot for floor plants, monsteras, fruit trees, and deep roots.'
-  },
-  {
-    id: 'mud_standard_5',
-    name: 'Traditional Earthen Mud Pot (5" Small)',
-    material: 'Natural Terracotta',
-    materialCategory: 'mud',
-    size: 'Small (5 Inch)',
-    quality: 'Standard Quality',
-    inrPrice: 85,
-    tag: 'Compact Tabletop',
-    badge: 'Popular',
-    description: 'Compact rustic mud pot ideal for windowsill herbs, succulents, and small green pots.'
-  },
-  {
-    id: 'mud_khurja_10',
-    name: 'Hand-Burnished Khurja Mud Planter (10")',
-    material: 'Artisan Khurja Clay',
-    materialCategory: 'mud',
-    size: 'Medium-Big (10 Inch)',
-    quality: 'Premium Quality',
-    inrPrice: 380,
-    tag: 'Artisan Finish',
-    badge: 'Premium',
-    description: 'Smooth hand-burnished red terracotta exterior with porous breathable inner walls.'
-  },
-  {
-    id: 'plastic_standard_6',
-    name: 'Lightweight UV-Ribbed Plastic Pot (6")',
-    material: 'Recycled Polypropylene',
-    materialCategory: 'plastic',
-    size: 'Small (6 Inch)',
-    quality: 'Standard Quality',
-    inrPrice: 65,
-    tag: 'Lightweight & Shatterproof',
-    badge: 'Standard',
-    description: 'Durable ribbed polymer pot with rapid drainage grid; weather and crack resistant.'
-  },
-  {
-    id: 'plastic_standard_12',
-    name: 'Heavy-Duty Outdoor Plastic Planter (12")',
-    material: 'UV-Treated Polymer',
-    materialCategory: 'plastic',
-    size: 'Big (12 Inch)',
-    quality: 'Standard Quality',
-    inrPrice: 190,
-    tag: 'Rugged Weatherproof',
-    badge: 'Standard',
-    description: 'Heavy gauge plastic planter built for intense balcony sunshine and all-weather terraces.'
-  },
-  {
-    id: 'plastic_self_watering_8',
-    name: 'Self-Watering Reservoir Plastic Planter (8")',
-    material: 'Virgin ABS Polymer',
-    materialCategory: 'plastic',
-    size: 'Medium (8 Inch)',
-    quality: 'High Quality',
-    inrPrice: 280,
-    tag: 'Wicking System',
-    badge: 'High Quality',
-    description: 'Dual-chamber wicking reservoir pot providing automatic moisture for up to 14 days.'
-  },
-  {
-    id: 'glass_hydro_5',
-    name: 'Minimalist Hydroponic Glass Bowl (5")',
-    material: 'Clear Soda-Lime Glass',
-    materialCategory: 'glass',
-    size: 'Small (5 Inch)',
-    quality: 'Standard Quality',
-    inrPrice: 220,
-    tag: 'Crystal Clear',
-    badge: 'Standard',
-    description: 'Transparent glass terrarium bowl for hydro water culture and decorative tabletop plants.'
-  },
-  {
-    id: 'glass_borosilicate_8',
-    name: 'Fluted Borosilicate Glass Planter (8")',
-    material: 'Borosilicate Glass',
-    materialCategory: 'glass',
-    size: 'Big (8 Inch)',
-    quality: 'High Quality',
-    inrPrice: 450,
-    tag: 'Architectural Luxury',
-    badge: 'High Quality',
-    description: 'Heat-tempered fluted cylinder showcasing root growth and aesthetic water layers.'
-  },
-  {
-    id: 'ceramic_tabletop_5',
-    name: 'Matte Pastel Ceramic Tabletop Pot (5")',
-    material: 'Glazed Stoneware',
-    materialCategory: 'ceramic',
-    size: 'Small (5 Inch)',
-    quality: 'High Quality',
-    inrPrice: 320,
-    tag: 'Pastel Glaze',
-    badge: 'High Quality',
-    description: 'Satin pastel glazed ceramic stoneware with precision drainage hole and saucer.'
-  },
-  {
-    id: 'ceramic_nordic_10',
-    name: 'Nordic Fluted Stoneware Ceramic Planter (10")',
-    material: 'Heavy Stoneware',
-    materialCategory: 'ceramic',
-    size: 'Big (10 Inch)',
-    quality: 'Premium Quality',
-    inrPrice: 750,
-    tag: 'Luxury Decor',
-    badge: 'Premium',
-    description: 'Handcrafted vertical-fluted heavy ceramic planter with silicone plug and saucer.'
-  }
-];
 
 export default function IndividualUserHome({
   products = [],
@@ -945,7 +799,7 @@ export default function IndividualUserHome({
       original_price: item.originalPrice || null,
       decay_discount_percent: item.decayDiscountPercent || 0,
       has_decay_discount: item.hasDecayDiscount || false,
-      image_url: item.image,
+      image_url: item.image || item.image_url || '/monstera_plant_pot.jpg',
       quantity: 1
     });
     setToastMessage(`Added 1 × ${item.name} (₹${item.inrPrice || item.price}) to Basket!`);
@@ -2179,14 +2033,18 @@ export default function IndividualUserHome({
                       </div>
 
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenDetail(plant);
-                        }}
-                        className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 active:scale-95 text-white font-bold text-[11px] shadow-xs flex items-center space-x-1 cursor-pointer"
-                        title="Choose pot & details"
+                        onClick={(e) => handleQuickAdd(plant, e)}
+                        className={`px-3.5 py-1.5 rounded-full font-bold text-xs shadow-xs flex items-center space-x-1 transition-all active:scale-95 cursor-pointer ${
+                          currentTheme === 'dark'
+                            ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-950'
+                            : currentTheme === 'light'
+                              ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                              : 'bg-rose-700 hover:bg-rose-800 text-white'
+                        }`}
+                        title="Add to Basket"
                       >
-                        <span>+ Pot</span>
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add</span>
                       </button>
                     </div>
                   </div>
