@@ -601,6 +601,7 @@ export default function App() {
         {activeRole === 'admin' && (
           currentUser?.user_type === 'admin' ? (
             <AdminConsole
+              currentUser={currentUser}
               currentTheme={theme}
               onProductsUpdated={loadProducts}
               onOpenLiveTrackingModal={(orderId) => {
@@ -645,6 +646,32 @@ export default function App() {
           )
         )}
       </main>
+
+      {/* Floating Store Manager Badge when logged in as Admin and browsing Storefront */}
+      {currentUser?.user_type === 'admin' && activeRole !== 'admin' && (
+        <aside
+          onClick={() => {
+            soundEffects.playClick();
+            setActiveRole('admin');
+            window.location.hash = 'admin';
+          }}
+          className="fixed bottom-5 left-5 z-40 p-2.5 sm:px-3.5 sm:py-2.5 rounded-2xl bg-white border border-stone-200 shadow-2xl hover:shadow-emerald-900/20 transition-all flex items-center space-x-3 cursor-pointer group hover:border-emerald-600 animate-in fade-in slide-in-from-bottom-2 duration-200"
+          title="Admin Mode Active - Click to return to Admin Console"
+        >
+          <div className="w-8 h-8 rounded-full bg-emerald-800 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+            {currentUser.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'VR'}
+          </div>
+          <div className="text-left pr-1">
+            <div className="text-xs font-bold text-stone-900 group-hover:text-emerald-800 transition-colors">
+              {currentUser.full_name || 'Venisha Dsouza'}
+            </div>
+            <div className="text-[10px] text-emerald-700 font-semibold flex items-center space-x-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block animate-pulse"></span>
+              <span>Store Manager (Admin Console →)</span>
+            </div>
+          </div>
+        </aside>
+      )}
 
       {/* Modals & Dialogs */}
       <BouquetBuilder7Step

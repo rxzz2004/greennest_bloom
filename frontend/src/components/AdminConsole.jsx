@@ -45,12 +45,23 @@ import { api } from '../api';
 import { soundEffects } from '../utils/audio';
 import CourierPortal from './CourierPortal';
 
-export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdated, currentTheme = 'rose' }) {
+export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdated, currentTheme = 'rose', currentUser }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showCourierPortal, setShowCourierPortal] = useState(false);
   const [courierModalDriverId, setCourierModalDriverId] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [adminSearchQuery, setAdminSearchQuery] = useState('');
+
+  const adminName = currentUser?.full_name || 'Venisha Dsouza';
+  const adminInitials = useMemo(() => {
+    return adminName
+      .split(' ')
+      .filter(Boolean)
+      .map(part => part[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'VR';
+  }, [adminName]);
   const [salesTimeRange, setSalesTimeRange] = useState('month');
   const [todoList, setTodoList] = useState([
     { id: 1, text: 'Check morning fresh flower shipments', completed: false },
@@ -1082,9 +1093,9 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
     }`}>
       
       {/* GreenNest Bloom Left Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-stone-200 transition-all duration-300 flex flex-col shrink-0 z-40 select-none shadow-xs`}>
+      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-stone-200 transition-all duration-300 flex flex-col shrink-0 z-40 select-none shadow-xs sticky top-0 h-screen`}>
         {/* Brand Header - GreenNest Bloom Theme */}
-        <div className="h-16 bg-emerald-950 border-b border-emerald-900 flex items-center justify-between px-5 text-white shadow-xs">
+        <div className="h-16 bg-emerald-950 border-b border-emerald-900 flex items-center justify-between px-5 text-white shadow-xs shrink-0">
           <div className="flex items-center space-x-2.5 overflow-hidden">
             <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-base shadow-xs">
               G
@@ -1326,15 +1337,15 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
           </div>
         </div>
 
-        {/* Sidebar Footer User Info */}
-        <div className="p-3 border-t border-stone-200 bg-stone-50">
+        {/* Sidebar Footer User Info (Always visible, sticky at bottom of viewport) */}
+        <div className="p-3 border-t border-stone-200 bg-stone-50 shrink-0 sticky bottom-0 z-10 shadow-xs">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full bg-emerald-800 text-white flex items-center justify-center font-bold text-xs shrink-0">
-              VR
+            <div className="w-8 h-8 rounded-full bg-emerald-800 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+              {adminInitials}
             </div>
             {sidebarOpen && (
               <div className="truncate">
-                <div className="text-xs font-bold text-stone-800 truncate">Venisha Dsouza</div>
+                <div className="text-xs font-bold text-stone-800 truncate">{adminName}</div>
                 <div className="text-[10px] text-emerald-700 font-semibold flex items-center space-x-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block"></span>
                   <span>Store Manager</span>
