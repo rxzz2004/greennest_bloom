@@ -6,14 +6,18 @@ echo "=============================================="
 echo " Green Nest Bloom - Unified Production Build "
 echo "=============================================="
 
-echo "Step 1: Installing frontend dependencies & building React SPA..."
-echo "Node runtime version: $(node -v || true)"
-echo "NPM package version:  $(npm -v || true)"
-cd frontend
-# Ensure devDependencies (vite, tailwind) are installed even if NODE_ENV=production
-npm install --include=dev
-npm run build
-cd ..
+echo "Step 1: Checking and building frontend assets..."
+if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
+    echo "Node.js detected ($(node -v)). Compiling fresh React SPA bundle..."
+    cd frontend
+    npm install --include=dev
+    npm run build
+    cd ..
+elif [ -d "frontend/dist" ] && [ -f "frontend/dist/index.html" ]; then
+    echo "Node.js not detected, but pre-compiled frontend/dist exists. Serving pre-compiled bundle."
+else
+    echo "Warning: Neither Node nor frontend/dist available."
+fi
 
 echo "Step 2: Installing Python backend dependencies..."
 python3 -m pip install --upgrade pip setuptools wheel

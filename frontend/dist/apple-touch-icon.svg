@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b"/>
+      <stop offset="50%" stop-color="#065f46"/>
+      <stop offset="100%" stop-color="#022c22"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Full-bleed background for iOS Springboard mask -->
+  <rect width="512" height="512" fill="url(#bgGrad)"/>
+
+  <!-- Elegant Inner Gold Border -->
+  <rect x="24" y="24" width="464" height="464" rx="90" fill="none" stroke="url(#goldGrad)" stroke-width="4" stroke-opacity="0.3"/>
+
+  <!-- Botanical Emblem Center Piece -->
+  <g filter="url(#dropShadow)" transform="translate(256, 240)">
+    <!-- Central Blooming Flower Blossom -->
+    <path d="M0 -140 C45 -80 70 -30 0 40 C-70 -30 -45 -80 0 -140 Z" fill="#ecfdf5"/>
+    <path d="M120 -50 C80 15 35 35 -30 10 C35 -60 85 -70 120 -50 Z" fill="#a7f3d0" opacity="0.9"/>
+    <path d="M-120 -50 C-85 -70 -35 -60 30 10 C-35 35 -80 15 -120 -50 Z" fill="#a7f3d0" opacity="0.9"/>
+    <path d="M80 80 C25 85 -10 45 -20 -15 C45 -10 85 25 80 80 Z" fill="#34d399" opacity="0.9"/>
+    <path d="M-80 80 C-85 25 -45 -10 20 -15 C10 45 -25 85 -80 80 Z" fill="#34d399" opacity="0.9"/>
+
+    <!-- Gold Pistil / Core -->
+    <circle cx="0" cy="0" r="28" fill="url(#goldGrad)"/>
+    <circle cx="0" cy="0" r="14" fill="#ffffff" opacity="0.8"/>
+  </g>
+
+  <!-- Brand Typography -->
+  <text x="256" y="415" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Playfair Display', serif" font-size="34" font-weight="700" fill="#fef08a" letter-spacing="3">GREEN NEST</text>
+  <text x="256" y="450" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', sans-serif" font-size="18" font-weight="600" fill="#a7f3d0" letter-spacing="6">BLOOM</text>
+</svg>
