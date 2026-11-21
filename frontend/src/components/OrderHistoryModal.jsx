@@ -344,8 +344,8 @@ export default function OrderHistoryModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-stone-100 border-t border-stone-200 flex items-center justify-between text-xs text-stone-500">
-          <span>All transactions backed by Razorpay Sandbox & GST Invoicing Engine</span>
+        <div className="p-4 bg-stone-100 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-2">
+          <span>All orders Cash on Delivery (COD) only • For queries contact Mr Vikith Fernandes (7349413826)</span>
           <button
             onClick={onClose}
             className="px-5 py-2 rounded-xl bg-stone-900 text-white font-bold hover:bg-stone-800 transition-colors"

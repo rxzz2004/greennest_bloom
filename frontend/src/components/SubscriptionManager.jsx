@@ -19,7 +19,8 @@ import {
   X,
   MapPin,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Phone
 } from 'lucide-react';
 import { api } from '../api';
 import { soundEffects } from '../utils/audio';
@@ -50,7 +51,7 @@ export default function SubscriptionManager({
     mode: 'subscribe', // 'subscribe' | 'change'
     tier: null
   });
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('upi');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('cod');
   const [deliveryAddress, setDeliveryAddress] = useState(
     user?.address || 'Flat 402, Green Orchid Enclave, Indiranagar, Bengaluru, 560038'
   );
@@ -127,12 +128,12 @@ export default function SubscriptionManager({
     setIsProcessingPayment(true);
 
     const steps = [
-      'Establishing 256-bit encrypted banking handshake...',
-      'Verifying payment authorization with banking gateway...',
+      'Booking Cash on Delivery reservation...',
+      'Registering subscription dispatch with Kalmane Nursery logistics...',
       'Allocating seasonal harvest quota at Kalmane Nursery...',
       paymentModal.mode === 'change' 
-        ? 'Superseding prior tier & establishing new recurring subscription...'
-        : 'Activating monthly recurring fresh cut delivery schedule...'
+        ? 'Superseding prior tier & establishing new Cash on Delivery subscription...'
+        : 'Activating monthly recurring fresh cut delivery schedule (Cash on Delivery)...'
     ];
 
     try {
@@ -177,8 +178,8 @@ export default function SubscriptionManager({
 
       showToast(
         paymentModal.mode === 'change'
-          ? `Plan changed to ${paymentModal.tier.name}! Payment of ₹${paymentModal.tier.monthly_price} confirmed.`
-          : `Subscribed to ${paymentModal.tier.name}! Payment of ₹${paymentModal.tier.monthly_price} confirmed.`
+          ? `Plan changed to ${paymentModal.tier.name}! Cash on Delivery subscription confirmed.`
+          : `Subscribed to ${paymentModal.tier.name}! Cash on Delivery subscription confirmed.`
       );
 
       // Auto close modal after showing success
@@ -680,33 +681,41 @@ export default function SubscriptionManager({
                   />
                 </div>
 
-                {/* Payment Method Selector */}
+                {/* Cash on Delivery Policy Notice */}
                 <div>
                   <label className="font-bold text-stone-700 dark:text-slate-300 mb-1.5 block">
-                    Choose Payment Method:
+                    Payment Method:
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { id: 'upi', label: 'UPI (GPay, PhonePe)', desc: 'Instant Autopay' },
-                      { id: 'card', label: 'Credit / Debit Card', desc: 'Visa, MasterCard, RuPay' },
-                      { id: 'netbanking', label: 'Net Banking', desc: 'All Major Indian Banks' },
-                      { id: 'cod', label: 'Cash on First Delivery', desc: 'Pay when first stems arrive' }
-                    ].map((method) => (
-                      <button
-                        type="button"
-                        key={method.id}
-                        onClick={() => setSelectedPaymentMethod(method.id)}
-                        className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
-                          selectedPaymentMethod === method.id
-                            ? 'border-pink-500 bg-pink-50/60 dark:bg-pink-950/40 text-pink-950 dark:text-pink-200 ring-1 ring-pink-500'
-                            : 'border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-800 text-stone-700 dark:text-slate-300'
-                        }`}
-                      >
-                        <span className="font-bold text-xs">{method.label}</span>
-                        <span className="text-[10px] opacity-70">{method.desc}</span>
-                      </button>
-                    ))}
+                  <div className="p-3.5 rounded-2xl border-2 border-emerald-600 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <strong className="text-xs sm:text-sm font-bold text-stone-900 dark:text-slate-100">Cash on Delivery (COD) Only</strong>
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-700 text-white font-bold text-[10px] uppercase">
+                          Official Policy
+                        </span>
+                      </div>
+                      <div className="w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0">
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-stone-700 dark:text-slate-300 mt-1.5 leading-relaxed">
+                      All products and subscriptions will have cash on delivery only. There will not be any QR code, credit card, or online payment done on this website. Simply pay cash to our refrigerated cold-chain courier upon receiving your fresh stems.
+                    </p>
                   </div>
+                </div>
+
+                {/* Direct Owner/Admin Contact Notice */}
+                <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-2xl text-xs space-y-1">
+                  <div className="flex items-center space-x-2 text-amber-950 dark:text-amber-200 font-bold">
+                    <Phone className="w-3.5 h-3.5 text-amber-800 dark:text-amber-400 shrink-0" />
+                    <span>Need Help or Have Queries?</span>
+                  </div>
+                  <p className="text-[11px] text-amber-900 dark:text-amber-300 leading-relaxed">
+                    For any queries, please contact the owner/admin: <strong>Mr Vikith Fernandes</strong>, Contact no:{' '}
+                    <a href="tel:7349413826" className="font-bold underline text-amber-950 dark:text-amber-200 hover:text-emerald-700">
+                      7349413826
+                    </a>
+                  </p>
                 </div>
 
                 {/* Price Breakdown */}
@@ -745,7 +754,7 @@ export default function SubscriptionManager({
                     className="px-6 py-2.5 rounded-xl bg-pink-600 hover:bg-pink-700 text-white font-bold shadow-md shadow-pink-600/20 flex items-center space-x-1.5 active:scale-95 transition-all"
                   >
                     <ShieldCheck className="w-4 h-4" />
-                    <span>Pay ₹{paymentModal.tier.monthly_price} & Confirm {paymentModal.mode === 'change' ? 'Plan Change' : 'Subscription'}</span>
+                    <span>Confirm Subscription • Cash on Delivery (₹{paymentModal.tier.monthly_price})</span>
                   </button>
                 </div>
               </div>
