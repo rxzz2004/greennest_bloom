@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Building2, 
   Layers, 
@@ -16,7 +16,9 @@ import {
   ArrowUpRight,
   Clock,
   ThermometerSnowflake,
-  PackageCheck
+  PackageCheck,
+  Search,
+  X
 } from 'lucide-react';
 import { soundEffects } from '../utils/audio';
 
@@ -27,12 +29,21 @@ export default function CorporateDashboard({
   onOpenStaging = () => {},
   onOpenInvoiceModal = () => {},
   onOpenLiveTrackingModal = () => {},
-  currentTheme = 'rose'
+  currentTheme = 'rose',
+  searchQuery = '',
+  setSearchQuery = () => {}
 }) {
   const [activeTab, setActiveTab] = useState('wholesale');
   const [poNumber, setPoNumber] = useState('PO-2026-LEELA-09');
   const [selectedQuantities, setSelectedQuantities] = useState({});
   const [addedItems, setAddedItems] = useState({});
+  const [internalSearch, setInternalSearch] = useState(searchQuery || '');
+
+  useEffect(() => {
+    if (searchQuery !== undefined && searchQuery !== internalSearch) {
+      setInternalSearch(searchQuery);
+    }
+  }, [searchQuery]);
 
   // Bulk Wholesale Stem Crates catalog
   const wholesaleItems = [
@@ -89,6 +100,41 @@ export default function CorporateDashboard({
       tags: ['Luxury Banquet', 'High Volume']
     }
   ];
+
+  const handlePerformCorporateSearch = (e) => {
+    if (e) e.preventDefault();
+    soundEffects.playClick();
+    setSearchQuery(internalSearch);
+    setActiveTab('wholesale');
+  };
+
+  const handleClearCorporateSearch = () => {
+    soundEffects.playClick();
+    setInternalSearch('');
+    setSearchQuery('');
+  };
+
+  const filteredWholesaleItems = useMemo(() => {
+    const q = (internalSearch || searchQuery || '').trim().toLowerCase();
+    if (!q) return wholesaleItems;
+    return wholesaleItems.filter(item => 
+      (item.name && item.name.toLowerCase().includes(q)) ||
+      (item.botanical && item.botanical.toLowerCase().includes(q)) ||
+      (item.origin && item.origin.toLowerCase().includes(q)) ||
+      (item.tags && item.tags.some(t => t.toLowerCase().includes(q)))
+    );
+  }, [wholesaleItems, internalSearch, searchQuery]);
+
+  const matchingCatalogProducts = useMemo(() => {
+    const q = (internalSearch || searchQuery || '').trim().toLowerCase();
+    if (!q || !products) return [];
+    return products.filter(p =>
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.category && p.category.toLowerCase().includes(q)) ||
+      (p.botanical_name && p.botanical_name.toLowerCase().includes(q)) ||
+      (p.description && p.description.toLowerCase().includes(q))
+    );
+  }, [products, internalSearch, searchQuery]);
 
   const handleCrateQuantityChange = (itemId, delta) => {
     soundEffects.playClick();
@@ -227,7 +273,7 @@ export default function CorporateDashboard({
 
       </div>
 
-      {/* Corporate Dashboard Segment Tabs */}
+      {/* Corporate Dashboard Segment Tabs & Search */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-stone-200 pb-4">
         <div className="flex items-center space-x-2 bg-stone-100 p-1.5 rounded-2xl">
           <button
@@ -263,6 +309,43 @@ export default function CorporateDashboard({
           </button>
         </div>
 
+        {/* Corporate Search Bar & Search Button */}
+        <form
+          onSubmit={handlePerformCorporateSearch}
+          className="flex items-center gap-2"
+        >
+          <div className="relative flex items-center rounded-xl border border-stone-300 bg-white px-3 py-1.5 text-xs focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-600/20 shadow-2xs">
+            <Search className="w-3.5 h-3.5 text-stone-400 mr-2 shrink-0" />
+            <input
+              type="text"
+              placeholder="Search crates, stems, origins..."
+              value={internalSearch}
+              onChange={(e) => {
+                setInternalSearch(e.target.value);
+                setSearchQuery(e.target.value);
+              }}
+              className="w-44 sm:w-60 outline-none text-stone-800 placeholder:text-stone-400 text-xs"
+            />
+            {internalSearch && (
+              <button
+                type="button"
+                onClick={handleClearCorporateSearch}
+                className="text-stone-400 hover:text-stone-600 ml-1 cursor-pointer"
+                title="Clear"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <button
+            type="submit"
+            className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-xs transition-colors shrink-0 cursor-pointer"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Search</span>
+          </button>
+        </form>
+
         {/* PO Reference Input */}
         <div className="flex items-center space-x-2 text-xs">
           <label className="font-bold text-stone-600">Active PO Ref:</label>
@@ -278,7 +361,7 @@ export default function CorporateDashboard({
       {/* TAB CONTENT: WHOLESALE BULK STEM REQUISITIONS */}
       {activeTab === 'wholesale' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h2 className="font-serif text-2xl font-bold text-stone-900">
                 Bulk Wholesale Mountain Crates
@@ -287,13 +370,37 @@ export default function CorporateDashboard({
                 High-volume farm gate crates sourced directly from Ooty, Kodaikanal, and Coorg highland growers.
               </p>
             </div>
-            <span className="text-xs text-indigo-700 font-semibold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
-              Bulk Tier Discounts Applied (Up to 25% Off)
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              {internalSearch && (
+                <div className="flex items-center gap-1.5 text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200">
+                  <span>Filtered: "{internalSearch}" ({filteredWholesaleItems.length} crate{filteredWholesaleItems.length === 1 ? '' : 's'})</span>
+                  <button onClick={handleClearCorporateSearch} className="hover:text-indigo-950 font-bold ml-1 cursor-pointer">×</button>
+                </div>
+              )}
+              <span className="text-xs text-indigo-700 font-semibold bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
+                Bulk Tier Discounts Applied (Up to 25% Off)
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {wholesaleItems.map((item) => {
+          {filteredWholesaleItems.length === 0 ? (
+            <div className="p-8 text-center bg-stone-50 border border-stone-200 rounded-2xl space-y-3">
+              <Search className="w-8 h-8 mx-auto text-stone-400" />
+              <h4 className="font-bold text-stone-700">No wholesale crates matching "{internalSearch}"</h4>
+              <p className="text-xs text-stone-500 max-w-md mx-auto">
+                Try searching for flower names like 'lily', 'rose', 'orchid', or regions like 'Ooty' or 'Kodaikanal'.
+              </p>
+              <button
+                type="button"
+                onClick={handleClearCorporateSearch}
+                className="px-4 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-semibold rounded-lg cursor-pointer"
+              >
+                Clear Search
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredWholesaleItems.map((item) => {
               const qty = selectedQuantities[item.id] || item.minCrates;
               const isAdded = addedItems[item.id];
               const totalStems = qty * item.stemsPerCrate;
@@ -373,6 +480,50 @@ export default function CorporateDashboard({
               );
             })}
           </div>
+          )}
+
+          {/* Also show matching individual stem products from database if search is active */}
+          {internalSearch && matchingCatalogProducts.length > 0 && (
+            <div className="pt-6 border-t border-stone-200 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-serif text-lg font-bold text-stone-900">
+                    Matching Products in Catalog ({matchingCatalogProducts.length})
+                  </h3>
+                  <p className="text-xs text-stone-500">
+                    Stems, plants, and bespoke arrangements matching "{internalSearch}"
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {matchingCatalogProducts.map((prod) => (
+                  <div
+                    key={prod.id}
+                    className="p-4 bg-white rounded-xl border border-stone-200 shadow-2xs flex items-center justify-between gap-3 hover:border-indigo-300 transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-bold text-xs text-stone-900 truncate">{prod.name}</div>
+                      <div className="text-[11px] text-stone-500 font-serif italic truncate">
+                        {prod.botanical_name || prod.category}
+                      </div>
+                      <div className="text-xs font-bold text-indigo-950 mt-1">₹{prod.price}</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        soundEffects.playStemSnip();
+                        onAddToCart(prod, 1);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-indigo-900 hover:bg-indigo-800 text-white font-bold text-xs shrink-0 flex items-center space-x-1 cursor-pointer"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Add</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

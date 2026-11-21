@@ -576,6 +576,8 @@ export default function App() {
                     setTrackingOrderId(orderId);
                     setIsTrackingOpen(true);
                   }}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
                 />
               </div>
             )}

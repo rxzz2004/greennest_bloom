@@ -100,6 +100,36 @@ export default function IndividualUserHome({
   // Pagination for catalogue ("View More" functionality)
   const [visibleCount, setVisibleCount] = useState(8);
 
+  // Top-bar search state & actions
+  const [inlineSearchQuery, setInlineSearchQuery] = useState(searchQuery || '');
+
+  useEffect(() => {
+    if (searchQuery !== undefined && searchQuery !== inlineSearchQuery) {
+      setInlineSearchQuery(searchQuery);
+    }
+  }, [searchQuery]);
+
+  const handlePerformSearch = (e) => {
+    if (e) e.preventDefault();
+    soundEffects.playClick();
+    setSearchQuery(inlineSearchQuery);
+    if (activeTab === 'subscription') {
+      setActiveTab('catalogue');
+    }
+    setTimeout(() => {
+      const el = document.getElementById('catalogue-section-root');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 80);
+  };
+
+  const handleClearSearch = () => {
+    soundEffects.playClick();
+    setInlineSearchQuery('');
+    setSearchQuery('');
+  };
+
   // Catalogue layout mode: 'auto' (phone = editorial menu, laptop = square grid) | 'editorial' | 'grid'
   const [catalogueLayout, setCatalogueLayout] = useState('auto');
 
@@ -1266,6 +1296,62 @@ export default function IndividualUserHome({
               </div>
             </div>
           </div>
+
+          {/* Top Bar Product Search Bar & Search Button */}
+          <form
+            onSubmit={handlePerformSearch}
+            className="flex-1 max-w-xs sm:max-w-sm md:max-w-md min-w-[210px] flex items-center gap-1.5 order-3 md:order-2 my-1 md:my-0"
+          >
+            <div className={`relative flex-1 flex items-center rounded-full border transition-all ${
+              currentTheme === 'dark'
+                ? 'bg-slate-800/90 border-slate-700 focus-within:border-cyan-400 text-slate-100 shadow-inner'
+                : currentTheme === 'light'
+                  ? 'bg-stone-50/90 border-stone-300 focus-within:border-emerald-600 text-stone-900 shadow-2xs'
+                  : 'bg-rose-50/70 border-rose-200/90 focus-within:border-rose-400 text-[#37131e] shadow-2xs'
+            }`}>
+              <Search className={`w-3.5 h-3.5 ml-3 shrink-0 ${
+                currentTheme === 'dark' ? 'text-slate-400' : currentTheme === 'light' ? 'text-stone-400' : 'text-rose-400'
+              }`} />
+              <input
+                type="text"
+                value={inlineSearchQuery}
+                onChange={(e) => {
+                  setInlineSearchQuery(e.target.value);
+                  setSearchQuery(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handlePerformSearch(e);
+                  }
+                }}
+                placeholder="Search stems, plants, flowers..."
+                className="w-full bg-transparent px-2.5 py-1.5 text-xs outline-none placeholder:text-stone-400 placeholder:text-xs"
+              />
+              {inlineSearchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="mr-2.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <button
+              type="submit"
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shadow-xs flex items-center space-x-1 shrink-0 cursor-pointer ${
+                currentTheme === 'dark'
+                  ? 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold shadow-cyan-500/20'
+                  : currentTheme === 'light'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20'
+                    : 'bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/25'
+              }`}
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>Search</span>
+            </button>
+          </form>
 
           {/* Action Quick Links */}
           <div className="flex items-center space-x-2.5">
