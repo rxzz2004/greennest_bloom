@@ -2026,7 +2026,7 @@ export default function IndividualUserHome({
                   </h3>
                   <p className={`text-xs sm:text-sm max-w-2xl font-light leading-relaxed ${currentTheme === 'dark' ? 'text-slate-300' : 'text-stone-600'
                     }`}>
-                    Nurtured in our Bengaluru greenhouse nurseries and potted in breathable terracotta planters with fortified organic compost. Shipped fully established with self-watering saucers and guaranteed 365-day botanical guidance.
+                    Nurtured in our Thirthahalli greenhouse nurseries (Kalmane, Western Ghats) and potted in breathable terracotta planters with fortified organic compost. Shipped fully established with self-watering saucers and guaranteed 365-day botanical guidance.
                   </p>
                 </div>
 
@@ -2175,7 +2175,7 @@ export default function IndividualUserHome({
                 </div>
                 <p className={`text-xs mt-1 ${currentTheme === 'dark' ? 'text-slate-400' : 'text-stone-500'
                   }`}>
-                  Artisanal morning harvests, living nursery plants, fruit trees & Ayurvedic botanicals with 365-day care support.
+                  Artisanal morning harvests, living nursery plants, fruit trees &amp; Ayurvedic botanicals from our Thirthahalli nursery with 365-day care support.
                 </p>
               </div>
 

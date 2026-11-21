@@ -2818,7 +2818,7 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                 {/* Floating Map Controls & Legend Overlay */}
                 <div className="absolute top-3 right-3 z-[1000] bg-white/95 backdrop-blur-md p-3 rounded-2xl border border-stone-200 shadow-md text-[11px] space-y-1.5 max-w-[210px]">
                   <div className="font-bold text-stone-900 flex items-center justify-between">
-                    <span>Bengaluru Live Fleet</span>
+                    <span>Thirthahalli Live Fleet</span>
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
                   </div>
                   <div className="space-y-1 text-stone-600 text-[10px]">

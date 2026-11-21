@@ -34,7 +34,7 @@ export default function CartAndCheckoutModal({
 }) {
   const [step, setStep] = useState('cart'); // 'cart' | 'payment' | 'processing' | 'success'
   const [shippingAddress, setShippingAddress] = useState(
-    user?.address || 'Flat 402, Green Orchid Enclave, Indiranagar, Bengaluru, 560038'
+    user?.address || 'Kalmane Main Road, Thirthahalli, Karnataka 577432'
   );
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [createdOrder, setCreatedOrder] = useState(null);

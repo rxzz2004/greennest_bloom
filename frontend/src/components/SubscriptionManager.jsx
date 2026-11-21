@@ -53,7 +53,7 @@ export default function SubscriptionManager({
   });
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('cod');
   const [deliveryAddress, setDeliveryAddress] = useState(
-    user?.address || 'Flat 402, Green Orchid Enclave, Indiranagar, Bengaluru, 560038'
+    user?.address || 'Kalmane Main Road, Thirthahalli, Karnataka 577432'
   );
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentStatusText, setPaymentStatusText] = useState('');
@@ -365,7 +365,7 @@ export default function SubscriptionManager({
               <MapPin className="w-4 h-4 text-stone-400 shrink-0 mt-0.5" />
               <div className="min-w-0">
                 <span className="text-stone-400 block text-[10px] uppercase font-bold">Delivery Address</span>
-                <strong className="text-xs truncate block font-medium">{currentSub.delivery_address || user?.address || 'Indiranagar, Bengaluru'}</strong>
+                <strong className="text-xs truncate block font-medium">{currentSub.delivery_address || user?.address || 'Kalmane, Thirthahalli'}</strong>
               </div>
             </div>
           </div>
