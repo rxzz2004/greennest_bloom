@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   ShieldCheck, 
   Clock, 
@@ -36,7 +36,8 @@ import {
   Upload,
   Tag,
   Sparkles,
-  CheckCircle2
+  CheckCircle2,
+  X
 } from 'lucide-react';
 import { api } from '../api';
 import { soundEffects } from '../utils/audio';
@@ -142,6 +143,158 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
   const [plantSearchQuery, setPlantSearchQuery] = useState('');
   const [plantCategoryFilter, setPlantCategoryFilter] = useState('all');
   const [isClearingAll, setIsClearingAll] = useState(false);
+
+  // Sync adminSearchQuery with plantSearchQuery & userSearchQuery
+  useEffect(() => {
+    if (adminSearchQuery) {
+      setPlantSearchQuery(adminSearchQuery);
+      setUserSearchQuery(adminSearchQuery);
+    }
+  }, [adminSearchQuery]);
+
+  // Cross-module search match counts across all modules
+  const moduleMatchCounts = useMemo(() => {
+    if (!adminSearchQuery.trim()) return null;
+    const q = adminSearchQuery.trim().toLowerCase();
+
+    const deliveryCount = drivers.filter(d => 
+      (d.name && d.name.toLowerCase().includes(q)) ||
+      (d.vanNumber && d.vanNumber.toLowerCase().includes(q)) ||
+      (d.phone && d.phone.toLowerCase().includes(q)) ||
+      (d.status && d.status.toLowerCase().includes(q)) ||
+      (d.operatingZone && d.operatingZone.toLowerCase().includes(q)) ||
+      (d.currentHub && d.currentHub.toLowerCase().includes(q)) ||
+      (d.currentParcels && d.currentParcels.some(p => 
+        (p.customerName && p.customerName.toLowerCase().includes(q)) ||
+        (p.destination && p.destination.toLowerCase().includes(q)) ||
+        (p.orderId && String(p.orderId).toLowerCase().includes(q)) ||
+        (p.trackingId && p.trackingId.toLowerCase().includes(q))
+      ))
+    ).length;
+
+    const quotesCount = quotations.filter(item =>
+      (item.company_name && item.company_name.toLowerCase().includes(q)) ||
+      (item.client_name && item.client_name.toLowerCase().includes(q)) ||
+      (item.contact_email && item.contact_email.toLowerCase().includes(q)) ||
+      (item.event_type && item.event_type.toLowerCase().includes(q)) ||
+      (item.venue_address && item.venue_address.toLowerCase().includes(q)) ||
+      (item.status && item.status.toLowerCase().includes(q)) ||
+      (item.id && String(item.id).includes(q)) ||
+      (item.estimated_amount && String(item.estimated_amount).includes(q))
+    ).length;
+
+    const usersCount = usersList.filter(u =>
+      (u.full_name && u.full_name.toLowerCase().includes(q)) ||
+      (u.email && u.email.toLowerCase().includes(q)) ||
+      (u.phone && u.phone.toLowerCase().includes(q)) ||
+      (u.company_name && u.company_name.toLowerCase().includes(q)) ||
+      (u.gstin && u.gstin.toLowerCase().includes(q)) ||
+      (u.user_type && u.user_type.toLowerCase().includes(q))
+    ).length;
+
+    const alertsCount = alerts.filter(a =>
+      (a.subject && a.subject.toLowerCase().includes(q)) ||
+      (a.body && a.body.toLowerCase().includes(q)) ||
+      (a.alert_type && a.alert_type.toLowerCase().includes(q)) ||
+      (a.recipient && a.recipient.toLowerCase().includes(q)) ||
+      (a.id && String(a.id).includes(q))
+    ).length;
+
+    const plantsCount = products.filter(p =>
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.category && p.category.toLowerCase().includes(q)) ||
+      (p.botanical_name && p.botanical_name.toLowerCase().includes(q)) ||
+      (p.description && p.description.toLowerCase().includes(q)) ||
+      (p.floriography_meaning && p.floriography_meaning.toLowerCase().includes(q)) ||
+      (p.id && String(p.id).includes(q))
+    ).length;
+
+    const batchesCount = batches.filter(b =>
+      (b.batch_code && b.batch_code.toLowerCase().includes(q)) ||
+      (b.product_name && b.product_name.toLowerCase().includes(q)) ||
+      (b.status && b.status.toLowerCase().includes(q)) ||
+      (b.farm_origin && b.farm_origin.toLowerCase().includes(q)) ||
+      (b.id && String(b.id).includes(q))
+    ).length;
+
+    return {
+      delivery_fleet: deliveryCount,
+      quotations: quotesCount,
+      user_accounts: usersCount,
+      system_alerts: alertsCount,
+      stems_and_plants: plantsCount,
+      decay_batches: batchesCount
+    };
+  }, [adminSearchQuery, drivers, quotations, usersList, alerts, products, batches]);
+
+  // Module-specific filtered datasets
+  const filteredDrivers = useMemo(() => {
+    if (!adminSearchQuery.trim()) return drivers;
+    const q = adminSearchQuery.trim().toLowerCase();
+    return drivers.filter(d => 
+      (d.name && d.name.toLowerCase().includes(q)) ||
+      (d.vanNumber && d.vanNumber.toLowerCase().includes(q)) ||
+      (d.phone && d.phone.toLowerCase().includes(q)) ||
+      (d.status && d.status.toLowerCase().includes(q)) ||
+      (d.operatingZone && d.operatingZone.toLowerCase().includes(q)) ||
+      (d.currentHub && d.currentHub.toLowerCase().includes(q)) ||
+      (d.currentParcels && d.currentParcels.some(p => 
+        (p.customerName && p.customerName.toLowerCase().includes(q)) ||
+        (p.destination && p.destination.toLowerCase().includes(q)) ||
+        (p.orderId && String(p.orderId).toLowerCase().includes(q)) ||
+        (p.trackingId && p.trackingId.toLowerCase().includes(q))
+      ))
+    );
+  }, [drivers, adminSearchQuery]);
+
+  const filteredQuotations = useMemo(() => {
+    if (!adminSearchQuery.trim()) return quotations;
+    const q = adminSearchQuery.trim().toLowerCase();
+    return quotations.filter(item =>
+      (item.company_name && item.company_name.toLowerCase().includes(q)) ||
+      (item.client_name && item.client_name.toLowerCase().includes(q)) ||
+      (item.contact_email && item.contact_email.toLowerCase().includes(q)) ||
+      (item.event_type && item.event_type.toLowerCase().includes(q)) ||
+      (item.venue_address && item.venue_address.toLowerCase().includes(q)) ||
+      (item.city && item.city.toLowerCase().includes(q)) ||
+      (item.status && item.status.toLowerCase().includes(q)) ||
+      (item.id && String(item.id).includes(q)) ||
+      (item.estimated_amount && String(item.estimated_amount).includes(q))
+    );
+  }, [quotations, adminSearchQuery]);
+
+  const filteredAlerts = useMemo(() => {
+    return alerts
+      .filter(alert => {
+        if (alertFilter === 'security') return alert.alert_type === 'admin_login';
+        if (alertFilter === 'accounts') return alert.alert_type === 'new_user_registration' || alert.alert_type === 'registration_otp';
+        if (alertFilter === 'perishables') return alert.alert_type === 'critical_decay' || alert.alert_type === 'event_lead' || alert.alert_type === 'event_quote';
+        return true;
+      })
+      .filter(alert => {
+        if (!adminSearchQuery.trim()) return true;
+        const q = adminSearchQuery.trim().toLowerCase();
+        return (
+          (alert.subject && alert.subject.toLowerCase().includes(q)) ||
+          (alert.body && alert.body.toLowerCase().includes(q)) ||
+          (alert.alert_type && alert.alert_type.toLowerCase().includes(q)) ||
+          (alert.recipient && alert.recipient.toLowerCase().includes(q)) ||
+          (alert.id && String(alert.id).includes(q))
+        );
+      });
+  }, [alerts, alertFilter, adminSearchQuery]);
+
+  const filteredBatches = useMemo(() => {
+    if (!adminSearchQuery.trim()) return batches;
+    const q = adminSearchQuery.trim().toLowerCase();
+    return batches.filter(b =>
+      (b.batch_code && b.batch_code.toLowerCase().includes(q)) ||
+      (b.product_name && b.product_name.toLowerCase().includes(q)) ||
+      (b.status && b.status.toLowerCase().includes(q)) ||
+      (b.farm_origin && b.farm_origin.toLowerCase().includes(q)) ||
+      (b.id && String(b.id).includes(q))
+    );
+  }, [batches, adminSearchQuery]);
 
   const BOTANICAL_PHOTO_PRESETS = [
     { label: 'Pink Oriental Lily', url: '/pink_lily_bloom.jpg' },
@@ -943,17 +1096,61 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
               <Menu className="w-5 h-5" />
             </button>
             
-            {/* Search Dashboard */}
-            <div className="relative w-64 md:w-80">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-              <input
-                type="text"
-                placeholder="Search dashboard..."
-                value={adminSearchQuery}
-                onChange={(e) => setAdminSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-1.5 text-xs bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all"
-              />
-            </div>
+            {/* Search Dashboard & Modules with Action Button */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                soundEffects.playClick();
+              }}
+              className="flex items-center gap-1.5"
+            >
+              <div className="relative w-52 sm:w-72 md:w-80">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                <input
+                  type="text"
+                  placeholder={
+                    activeTab === 'delivery_fleet'
+                      ? 'Search couriers, vans, routes...'
+                      : activeTab === 'quotations'
+                      ? 'Search quotes, clients, venues...'
+                      : activeTab === 'user_accounts'
+                      ? 'Search customers, emails, companies...'
+                      : activeTab === 'system_alerts'
+                      ? 'Search audit logs, alerts, events...'
+                      : activeTab === 'stems_and_plants'
+                      ? 'Search stems, plants, species...'
+                      : activeTab === 'decay_batches'
+                      ? 'Search flower batches, codes...'
+                      : 'Search delivery, orders, users, logs...'
+                  }
+                  value={adminSearchQuery}
+                  onChange={(e) => setAdminSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-8 py-1.5 text-xs bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all text-stone-800"
+                />
+                {adminSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      soundEffects.playClick();
+                      setAdminSearchQuery('');
+                      setUserSearchQuery('');
+                      setPlantSearchQuery('');
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 cursor-pointer"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <button
+                type="submit"
+                className="px-3 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs shadow-xs transition-colors flex items-center space-x-1 shrink-0 cursor-pointer"
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span>Search</span>
+              </button>
+            </form>
           </div>
 
           <div className="flex items-center space-x-3">
@@ -1021,6 +1218,74 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
               <span className="font-bold text-stone-800 capitalize">
                 {activeTab === 'stems_and_plants' ? 'Stems & Plants' : activeTab === 'decay_batches' ? 'Fresh Flowers' : activeTab === 'delivery_fleet' ? 'Delivery' : activeTab === 'quotations' ? 'Quotes' : activeTab === 'curation_metrics' ? 'Subscriptions' : activeTab === 'user_accounts' ? 'Customers' : activeTab === 'system_alerts' ? 'Alerts' : activeTab.replace('_', ' ')}
               </span>
+            </div>
+          )}
+
+          {/* Active Search Filter Banner & Module Switcher */}
+          {adminSearchQuery.trim() && (
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/90 shadow-2xs space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center space-x-2">
+                  <Search className="w-4 h-4 text-emerald-800 shrink-0" />
+                  <span className="text-emerald-950">
+                    Active Search: <strong>"{adminSearchQuery}"</strong>
+                  </span>
+                  <span className="text-emerald-700 font-medium text-[11px] hidden sm:inline">
+                    • Live filtering current view and cross-module records
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundEffects.playClick();
+                    setAdminSearchQuery('');
+                    setUserSearchQuery('');
+                    setPlantSearchQuery('');
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold text-xs flex items-center space-x-1 transition-colors cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  <span>Clear Search Filter</span>
+                </button>
+              </div>
+
+              {moduleMatchCounts && (
+                <div className="pt-2 border-t border-emerald-200/60 flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="text-[11px] font-bold text-emerald-900 mr-1">Matches by Module:</span>
+                  {[
+                    { id: 'delivery_fleet', label: 'Delivery', count: moduleMatchCounts.delivery_fleet },
+                    { id: 'quotations', label: 'Quotes & Orders', count: moduleMatchCounts.quotations },
+                    { id: 'user_accounts', label: 'Users', count: moduleMatchCounts.user_accounts },
+                    { id: 'system_alerts', label: 'Audit Logs', count: moduleMatchCounts.system_alerts },
+                    { id: 'stems_and_plants', label: 'Stems & Plants', count: moduleMatchCounts.stems_and_plants },
+                    { id: 'decay_batches', label: 'Flower Batches', count: moduleMatchCounts.decay_batches }
+                  ].map(mod => (
+                    <button
+                      key={mod.id}
+                      type="button"
+                      onClick={() => {
+                        soundEffects.playClick();
+                        setActiveTab(mod.id);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center space-x-1 cursor-pointer ${
+                        activeTab === mod.id
+                          ? 'bg-emerald-800 text-white shadow-2xs ring-2 ring-emerald-600/30'
+                          : mod.count > 0
+                          ? 'bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300'
+                          : 'bg-white/60 text-stone-400 border border-stone-200 hover:text-stone-700'
+                      }`}
+                    >
+                      <span>{mod.label}</span>
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                        activeTab === mod.id ? 'bg-emerald-950 text-emerald-200' : mod.count > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-400'
+                      }`}>
+                        {mod.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -1707,21 +1972,52 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
               
               {/* Filter & Search Bar */}
               <div className="bg-white rounded-3xl border border-stone-200 p-4 shadow-xs space-y-3">
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                  <div className="relative flex-1">
-                    <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                      type="text"
-                      value={plantSearchQuery}
-                      onChange={(e) => setPlantSearchQuery(e.target.value)}
-                      placeholder="Search active plants by name, botanical name, or category..."
-                      className="w-full pl-9 pr-4 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-700"
-                    />
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    soundEffects.playClick();
+                    setAdminSearchQuery(plantSearchQuery);
+                  }}
+                  className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3"
+                >
+                  <div className="flex-1 flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={plantSearchQuery}
+                        onChange={(e) => {
+                          setPlantSearchQuery(e.target.value);
+                          setAdminSearchQuery(e.target.value);
+                        }}
+                        placeholder="Search active plants by name, botanical name, or category..."
+                        className="w-full pl-9 pr-8 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                      />
+                      {plantSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPlantSearchQuery('');
+                            setAdminSearchQuery('');
+                          }}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      type="submit"
+                      className="px-3.5 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs flex items-center space-x-1 shrink-0 cursor-pointer shadow-xs"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                      <span>Search</span>
+                    </button>
                   </div>
                   <span className="text-xs font-bold text-stone-500 whitespace-nowrap self-center">
                     Total: <strong className="text-stone-900">{products.length}</strong> items
                   </span>
-                </div>
+                </form>
 
                 {/* Category Filter Pills */}
                 <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
@@ -1859,9 +2155,46 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
         <div className="bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden space-y-4 p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-stone-100">
             <div>
-            <h3 className="font-serif text-xl font-bold text-stone-900">Fresh Flowers</h3>
+              <h3 className="font-serif text-xl font-bold text-stone-900">
+                Fresh Flowers ({filteredBatches.length})
+              </h3>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  soundEffects.playClick();
+                }}
+                className="flex items-center gap-1.5"
+              >
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={adminSearchQuery}
+                    onChange={(e) => setAdminSearchQuery(e.target.value)}
+                    placeholder="Search batch code, species..."
+                    className="pl-8 pr-7 py-1.5 rounded-xl border border-stone-200 text-xs w-44 sm:w-56 focus:ring-2 focus:ring-emerald-600 outline-none"
+                  />
+                  {adminSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setAdminSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs flex items-center space-x-1 cursor-pointer shadow-xs"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Search</span>
+                </button>
+              </form>
+
               <button
                 onClick={() => {
                   soundEffects.playClick();
@@ -1872,9 +2205,6 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                 <Plus className="w-3.5 h-3.5" />
                 <span>Log Shipment</span>
               </button>
-              <span className="text-xs text-stone-400 font-mono">
-                {batches.length} active batches
-              </span>
             </div>
           </div>
 
@@ -1893,7 +2223,7 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-100">
-                {batches.map((b) => (
+                {filteredBatches.map((b) => (
                   <tr key={b.id} className="hover:bg-stone-50/80 transition-colors">
                     <td className="p-3 font-mono font-bold text-stone-900">{b.batch_code}</td>
                     <td className="p-3 font-medium text-stone-800">{b.product_name}</td>
@@ -2203,10 +2533,46 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pb-3 border-b border-stone-100">
               <div>
                 <h4 className="font-serif text-lg font-bold text-stone-900">
-                  Registered Courier Personnel ({drivers.length})
+                  Registered Courier Personnel ({filteredDrivers.length})
                 </h4>
               </div>
-              <span className="text-xs text-stone-400 font-mono">SQLite: delivery_partners</span>
+              <div className="flex items-center gap-2">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    soundEffects.playClick();
+                  }}
+                  className="flex items-center gap-1.5"
+                >
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={adminSearchQuery}
+                      onChange={(e) => setAdminSearchQuery(e.target.value)}
+                      placeholder="Search courier, van, route, zone..."
+                      className="pl-8 pr-7 py-1.5 rounded-xl border border-stone-200 text-xs w-48 sm:w-64 focus:ring-2 focus:ring-emerald-600 outline-none"
+                    />
+                    {adminSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setAdminSearchQuery('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <button
+                    type="submit"
+                    className="px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs flex items-center space-x-1 cursor-pointer shadow-xs"
+                  >
+                    <Search className="w-3.5 h-3.5" />
+                    <span>Search</span>
+                  </button>
+                </form>
+                <span className="text-xs text-stone-400 font-mono hidden md:inline">SQLite: delivery_partners</span>
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -2224,7 +2590,7 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100">
-                  {drivers.map((driver) => {
+                  {filteredDrivers.map((driver) => {
                     const isEnRoute = driver.status === 'en_route';
                     const isBreak = driver.status === 'on_break';
                     return (
@@ -2313,6 +2679,21 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                       </tr>
                     );
                   })}
+                  {filteredDrivers.length === 0 && (
+                    <tr>
+                      <td colSpan="8" className="p-8 text-center text-stone-400 space-y-2">
+                        <Truck className="w-8 h-8 mx-auto text-stone-300" />
+                        <p className="font-bold text-stone-700 text-xs">No delivery personnel or routes matching "{adminSearchQuery}"</p>
+                        <button
+                          type="button"
+                          onClick={() => setAdminSearchQuery('')}
+                          className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs rounded-lg font-semibold cursor-pointer"
+                        >
+                          Clear Search
+                        </button>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -2476,14 +2857,52 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
       {/* TAB 3: Event Quotations Manager */}
       {activeTab === 'quotations' && (
         <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 space-y-4">
-          <div className="flex justify-between items-center pb-4 border-b border-stone-100">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 border-b border-stone-100">
             <div>
-              <h3 className="font-serif text-xl font-bold text-stone-900">Quotes</h3>
+              <h3 className="font-serif text-xl font-bold text-stone-900">
+                Corporate Orders & Quotes ({filteredQuotations.length})
+              </h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  soundEffects.playClick();
+                }}
+                className="flex items-center gap-1.5"
+              >
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={adminSearchQuery}
+                    onChange={(e) => setAdminSearchQuery(e.target.value)}
+                    placeholder="Search quote, client, company, venue..."
+                    className="pl-8 pr-7 py-1.5 rounded-xl border border-stone-200 text-xs w-48 sm:w-64 focus:ring-2 focus:ring-emerald-600 outline-none"
+                  />
+                  {adminSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setAdminSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs flex items-center space-x-1 cursor-pointer shadow-xs"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Search</span>
+                </button>
+              </form>
             </div>
           </div>
 
           <div className="space-y-4">
-            {quotations.map((q) => (
+            {filteredQuotations.map((q) => (
               <div key={q.id} className="p-5 rounded-2xl border border-stone-200 bg-stone-50/60 flex flex-col md:flex-row justify-between gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
@@ -2556,6 +2975,21 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                 </div>
               </div>
             ))}
+
+            {filteredQuotations.length === 0 && (
+              <div className="p-8 text-center bg-stone-50 border border-stone-200 rounded-2xl space-y-2">
+                <FileText className="w-8 h-8 mx-auto text-stone-400" />
+                <h4 className="font-bold text-stone-700 text-sm">No corporate quotes matching "{adminSearchQuery}"</h4>
+                <p className="text-xs text-stone-500">Try searching for company name, event type, or venue address.</p>
+                <button
+                  type="button"
+                  onClick={() => setAdminSearchQuery('')}
+                  className="px-3 py-1 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-semibold rounded-lg cursor-pointer"
+                >
+                  Clear Search
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2647,17 +3081,48 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
             </div>
           </div>
 
-          {/* Search bar */}
-          <div className="relative">
-            <input
-              type="text"
-              value={userSearchQuery}
-              onChange={(e) => setUserSearchQuery(e.target.value)}
-              placeholder="Search clients by name, email, company or GSTIN..."
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-stone-200 text-xs focus:ring-2 focus:ring-stone-900"
-            />
-            <Users className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
-          </div>
+          {/* Search bar & Search Button */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              soundEffects.playClick();
+              setAdminSearchQuery(userSearchQuery);
+            }}
+            className="flex items-center gap-2"
+          >
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={userSearchQuery}
+                onChange={(e) => {
+                  setUserSearchQuery(e.target.value);
+                  setAdminSearchQuery(e.target.value);
+                }}
+                placeholder="Search clients by name, email, company or GSTIN..."
+                className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-stone-200 text-xs focus:ring-2 focus:ring-stone-900 outline-none"
+              />
+              <Users className="w-4 h-4 text-stone-400 absolute left-3 top-3" />
+              {(userSearchQuery || adminSearchQuery) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUserSearchQuery('');
+                    setAdminSearchQuery('');
+                  }}
+                  className="absolute right-3 top-3 text-stone-400 hover:text-stone-600 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs flex items-center space-x-1.5 shrink-0 shadow-xs cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>Search</span>
+            </button>
+          </form>
 
           {/* Users Table */}
           <div className="overflow-x-auto">
@@ -2677,13 +3142,15 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                   .filter(u => u.user_type !== 'admin')
                   .filter(u => userFilter === 'all' || u.user_type === userFilter)
                   .filter(u => {
-                    if (!userSearchQuery.trim()) return true;
-                    const q = userSearchQuery.toLowerCase();
+                    const q = (userSearchQuery || adminSearchQuery).trim().toLowerCase();
+                    if (!q) return true;
                     return (
                       u.full_name?.toLowerCase().includes(q) ||
                       u.email?.toLowerCase().includes(q) ||
+                      u.phone?.toLowerCase().includes(q) ||
                       u.company_name?.toLowerCase().includes(q) ||
-                      u.gstin?.toLowerCase().includes(q)
+                      u.gstin?.toLowerCase().includes(q) ||
+                      String(u.id).includes(q)
                     );
                   })
                   .map((user) => {
@@ -2732,6 +3199,38 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                       </tr>
                     );
                   })}
+                {usersList
+                  .filter(u => u.user_type !== 'admin')
+                  .filter(u => userFilter === 'all' || u.user_type === userFilter)
+                  .filter(u => {
+                    const q = (userSearchQuery || adminSearchQuery).trim().toLowerCase();
+                    if (!q) return true;
+                    return (
+                      u.full_name?.toLowerCase().includes(q) ||
+                      u.email?.toLowerCase().includes(q) ||
+                      u.phone?.toLowerCase().includes(q) ||
+                      u.company_name?.toLowerCase().includes(q) ||
+                      u.gstin?.toLowerCase().includes(q) ||
+                      String(u.id).includes(q)
+                    );
+                  }).length === 0 && (
+                    <tr>
+                      <td colSpan="6" className="p-8 text-center text-stone-400 space-y-2">
+                        <UserCheck className="w-8 h-8 mx-auto text-stone-300" />
+                        <p className="font-bold text-stone-700 text-xs">No client accounts matching "{userSearchQuery || adminSearchQuery}"</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUserSearchQuery('');
+                            setAdminSearchQuery('');
+                          }}
+                          className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs rounded-lg font-semibold cursor-pointer"
+                        >
+                          Clear Search
+                        </button>
+                      </td>
+                    </tr>
+                  )}
               </tbody>
             </table>
           </div>
@@ -2817,16 +3316,45 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
             ))}
           </div>
 
+          {/* Audit Logs Search Bar & Search Button */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              soundEffects.playClick();
+            }}
+            className="flex items-center gap-2"
+          >
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={adminSearchQuery}
+                onChange={(e) => setAdminSearchQuery(e.target.value)}
+                placeholder="Search audit logs by subject, body text, recipient, or event type..."
+                className="w-full pl-9 pr-8 py-2.5 rounded-xl border border-stone-200 text-xs focus:ring-2 focus:ring-emerald-700 outline-none"
+              />
+              {adminSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setAdminSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <button
+              type="submit"
+              className="px-4 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs flex items-center space-x-1.5 shrink-0 shadow-xs cursor-pointer"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>Search</span>
+            </button>
+          </form>
+
           {/* Alerts List */}
           <div className="space-y-3">
-            {alerts
-              .filter(alert => {
-                if (alertFilter === 'security') return alert.alert_type === 'admin_login';
-                if (alertFilter === 'accounts') return alert.alert_type === 'new_user_registration' || alert.alert_type === 'registration_otp';
-                if (alertFilter === 'perishables') return alert.alert_type === 'critical_decay' || alert.alert_type === 'event_lead' || alert.alert_type === 'event_quote';
-                return true;
-              })
-              .map((alert) => {
+            {filteredAlerts.map((alert) => {
                 const meta = getAlertMeta(alert.alert_type);
                 const MetaIcon = meta.icon;
                 const cleanBody = alert.body.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
@@ -2899,6 +3427,21 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                   </div>
                 );
               })}
+
+            {filteredAlerts.length === 0 && (
+              <div className="p-8 text-center bg-stone-50 border border-stone-200 rounded-2xl space-y-2">
+                <Bell className="w-8 h-8 mx-auto text-stone-400" />
+                <h4 className="font-bold text-stone-700 text-sm">No audit logs matching "{adminSearchQuery}"</h4>
+                <p className="text-xs text-stone-500">Try searching for keywords like 'login', 'registration', 'decay', or 'quote'.</p>
+                <button
+                  type="button"
+                  onClick={() => setAdminSearchQuery('')}
+                  className="px-3 py-1 bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-semibold rounded-lg cursor-pointer"
+                >
+                  Clear Search
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
