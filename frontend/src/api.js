@@ -162,6 +162,20 @@ export const api = {
     });
     return res.json();
   },
+  updateBatch: async (batchId, batchData) => {
+    const res = await fetch(`${API_BASE}/batches/${batchId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(batchData)
+    });
+    return res.json();
+  },
+  deleteBatch: async (batchId) => {
+    const res = await fetch(`${API_BASE}/batches/${batchId}`, {
+      method: 'DELETE'
+    });
+    return res.json();
+  },
 
   // 7-Step Bouquet Customizer
   getBouquetElements: async () => {

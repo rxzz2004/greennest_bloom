@@ -27,6 +27,7 @@ import {
   IndianRupee,
   Heart,
   Trash2,
+  Edit3,
   Eye,
   AlertTriangle,
   KeyRound,
@@ -119,6 +120,19 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
     vase_life_days: 5,
     farm_origin: 'Nilgiris High-Altitude Polyhouse #3'
   });
+
+  // Edit Batch state
+  const [editingBatch, setEditingBatch] = useState(null);
+  const [editBatchForm, setEditBatchForm] = useState({
+    batch_code: '',
+    harvest_date: '',
+    remaining_quantity: 0,
+    initial_quantity: 0,
+    vase_life_days: 5,
+    discount_percent: 0,
+    status: 'fresh'
+  });
+  const [batchActionSubmitting, setBatchActionSubmitting] = useState(false);
 
   // Selected email alert preview modal & filtering
   const [selectedAlertModal, setSelectedAlertModal] = useState(null);
@@ -624,6 +638,62 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
       alert('Error logging farm harvest batch.');
     } finally {
       setHarvestSubmitting(false);
+    }
+  };
+
+  const handleOpenEditBatch = (b) => {
+    soundEffects.playClick();
+    setEditingBatch(b);
+    setEditBatchForm({
+      batch_code: b.batch_code || '',
+      harvest_date: b.harvest_date || '',
+      remaining_quantity: b.remaining_quantity || 0,
+      initial_quantity: b.initial_quantity || 0,
+      vase_life_days: b.vase_life_days || 5,
+      discount_percent: b.discount_percent || 0,
+      status: b.status || 'fresh'
+    });
+  };
+
+  const handleUpdateBatch = async (e) => {
+    e.preventDefault();
+    if (!editingBatch) return;
+    setBatchActionSubmitting(true);
+    try {
+      const res = await api.updateBatch(editingBatch.id, {
+        batch_code: editBatchForm.batch_code,
+        harvest_date: editBatchForm.harvest_date,
+        remaining_quantity: Number(editBatchForm.remaining_quantity),
+        initial_quantity: Number(editBatchForm.initial_quantity),
+        vase_life_days: Number(editBatchForm.vase_life_days),
+        discount_percent: Number(editBatchForm.discount_percent),
+        status: editBatchForm.status
+      });
+      soundEffects.playSuccessChime();
+      setEditingBatch(null);
+      alert(res.message || 'Batch details updated successfully in database.');
+      loadAllAdminData();
+    } catch (err) {
+      alert('Failed to update batch: ' + (err.message || 'Server error'));
+    } finally {
+      setBatchActionSubmitting(false);
+    }
+  };
+
+  const handleDeleteBatch = async (batch) => {
+    soundEffects.playClick();
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete batch "${batch.batch_code}" (${batch.product_name})?\n\nThis will remove it from the database and adjust inventory stock.`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await api.deleteBatch(batch.id);
+      soundEffects.playSuccessChime();
+      alert(res.message || `Batch ${batch.batch_code} successfully removed.`);
+      loadAllAdminData();
+    } catch (err) {
+      alert('Failed to delete batch: ' + (err.message || 'Server error'));
     }
   };
 
@@ -2353,16 +2423,33 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                       ₹{b.effective_price} <span className="text-[10px] text-stone-400 line-through">₹{b.base_price}</span>
                     </td>
                     <td className="p-3 text-right">
-                      <button
-                        onClick={() => {
-                          soundEffects.playClick();
-                          setOverrideModal(b);
-                          setOverrideDiscount(b.discount_percent);
-                        }}
-                        className="px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-[11px] transition-colors"
-                      >
-                        Override
-                      </button>
+                      <div className="flex items-center justify-end space-x-1.5">
+                        <button
+                          onClick={() => {
+                            soundEffects.playClick();
+                            setOverrideModal(b);
+                            setOverrideDiscount(b.discount_percent);
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-[11px] transition-colors"
+                          title="Override Markdown"
+                        >
+                          Override
+                        </button>
+                        <button
+                          onClick={() => handleOpenEditBatch(b)}
+                          className="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold transition-colors"
+                          title="Edit Batch Details"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteBatch(b)}
+                          className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold transition-colors"
+                          title="Delete Batch"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -3656,6 +3743,151 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
               >
                 {harvestSubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                 <span>Register Harvest Batch</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Modal 1B: Edit Existing Farm Harvest Batch Details */}
+      {editingBatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <form onSubmit={handleUpdateBatch} className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-stone-200 space-y-4 text-xs">
+            <div className="flex justify-between items-center pb-3 border-b border-stone-200">
+              <div className="flex items-center space-x-2">
+                <Edit3 className="w-5 h-5 text-emerald-700" />
+                <h3 className="font-serif text-xl font-bold text-stone-900">
+                  Edit Harvest Batch Details
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingBatch(null)}
+                className="text-stone-400 hover:text-stone-700 font-bold text-xl leading-none"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
+              <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-0.5">
+                Floral Species
+              </span>
+              <span className="text-sm font-bold text-stone-900">
+                {editingBatch.product_name}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">Batch Tracking Code:</label>
+                <input
+                  type="text"
+                  value={editBatchForm.batch_code}
+                  onChange={(e) => setEditBatchForm({ ...editBatchForm, batch_code: e.target.value })}
+                  className="w-full p-2 rounded-xl border border-stone-300 font-mono text-xs font-bold"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">Harvest Cut Date:</label>
+                <input
+                  type="date"
+                  value={editBatchForm.harvest_date}
+                  onChange={(e) => setEditBatchForm({ ...editBatchForm, harvest_date: e.target.value })}
+                  className="w-full p-2 rounded-xl border border-stone-300 text-xs font-medium"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">Remaining Stock (Available):</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="5000"
+                  value={editBatchForm.remaining_quantity}
+                  onChange={(e) => setEditBatchForm({ ...editBatchForm, remaining_quantity: Number(e.target.value) })}
+                  className="w-full p-2 rounded-xl border border-stone-300 text-xs font-bold"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">Initial Inward Quantity:</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="5000"
+                  value={editBatchForm.initial_quantity}
+                  onChange={(e) => setEditBatchForm({ ...editBatchForm, initial_quantity: Number(e.target.value) })}
+                  className="w-full p-2 rounded-xl border border-stone-300 text-xs font-bold"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">Vase Life (Days):</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="30"
+                  value={editBatchForm.vase_life_days}
+                  onChange={(e) => setEditBatchForm({ ...editBatchForm, vase_life_days: Number(e.target.value) })}
+                  className="w-full p-2 rounded-xl border border-stone-300 text-xs font-bold"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">Markdown (%):</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.5"
+                  value={editBatchForm.discount_percent}
+                  onChange={(e) => setEditBatchForm({ ...editBatchForm, discount_percent: Number(e.target.value) })}
+                  className="w-full p-2 rounded-xl border border-stone-300 text-xs font-bold text-emerald-800"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-stone-700 mb-1">Freshness Status:</label>
+                <select
+                  value={editBatchForm.status}
+                  onChange={(e) => setEditBatchForm({ ...editBatchForm, status: e.target.value })}
+                  className="w-full p-2 rounded-xl border border-stone-300 text-xs font-semibold"
+                >
+                  <option value="fresh">Fresh (0%)</option>
+                  <option value="prime">Prime (20%)</option>
+                  <option value="clearance">Clearance</option>
+                  <option value="expired">Expired (90%)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingBatch(null)}
+                className="px-4 py-2 rounded-xl text-stone-600 font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={batchActionSubmitting}
+                className="px-5 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold flex items-center gap-1.5 shadow-sm"
+              >
+                {batchActionSubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                <span>Save Changes in Database</span>
               </button>
             </div>
           </form>

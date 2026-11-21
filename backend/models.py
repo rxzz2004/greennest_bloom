@@ -99,16 +99,16 @@ class Product(db.Model):
     __tablename__ = "products"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), nullable=False)
-    category = db.Column(db.String(50), nullable=False)  # cut_flower, potted_plant, planter, accessory
+    name = db.Column(db.String(255), nullable=False)
+    category = db.Column(db.String(100), nullable=False)  # cut_flower, potted_plant, planter, accessory
     is_perishable = db.Column(db.Boolean, default=False)
     base_price = db.Column(db.Float, nullable=False)
     b2b_min_quantity = db.Column(db.Integer, default=1)  # MOQ for corporate
     b2b_discount_percent = db.Column(db.Float, default=0.0)
-    hsn_code = db.Column(db.String(10), default="0603")  # 0603: Cut Flowers, 0602: Live Plants
-    botanical_name = db.Column(db.String(120), nullable=True)
-    sunlight_requirement = db.Column(db.String(50), nullable=True)
-    watering_frequency = db.Column(db.String(50), nullable=True)
+    hsn_code = db.Column(db.String(20), default="0603")  # 0603: Cut Flowers, 0602: Live Plants
+    botanical_name = db.Column(db.String(255), nullable=True)
+    sunlight_requirement = db.Column(db.String(255), nullable=True)
+    watering_frequency = db.Column(db.String(255), nullable=True)
     vase_life_days = db.Column(db.Integer, default=5)
     floriography_meaning = db.Column(db.Text, nullable=True)
     image_url = db.Column(db.Text, nullable=True)
