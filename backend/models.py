@@ -401,8 +401,8 @@ class Order(db.Model):
     tax_sgst = db.Column(db.Float, default=0.0)
     tax_igst = db.Column(db.Float, default=0.0)
     total_amount = db.Column(db.Float, nullable=False)
-    payment_method = db.Column(db.String(50), default="razorpay_test")
-    payment_status = db.Column(db.String(20), default="paid")
+    payment_method = db.Column(db.String(50), default="Cash on Delivery (COD)")
+    payment_status = db.Column(db.String(50), default="Pending (COD)")
     order_status = db.Column(db.String(20), default="processing")  # processing, dispatched, in_transit, delivered
     shipping_address = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
