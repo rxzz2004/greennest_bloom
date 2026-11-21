@@ -20,6 +20,10 @@ class Config:
     else:
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{BASE_DIR / 'greennest_bloom.db'}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+    }
     
     # SMTP / Alert Settings
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@greennestbloom.com")
