@@ -142,6 +142,9 @@ export default function IndividualUserHome({
   const favoritesList = propFavoritesList !== undefined ? propFavoritesList : internalFavoritesList;
   const [toastMessage, setToastMessage] = useState(null);
 
+  // Product Detail View state
+  const [activeDetailImageIndex, setActiveDetailImageIndex] = useState(0);
+
   // Product Reviews & Ratings state
   const [productReviews, setProductReviews] = useState([]);
   const [reviewStats, setReviewStats] = useState({ average_rating: 5.0, total_reviews: 0, customer_photos: [] });
@@ -150,11 +153,41 @@ export default function IndividualUserHome({
   const [newRating, setNewRating] = useState(5);
   const [newReviewTitle, setNewReviewTitle] = useState('');
   const [newReviewComment, setNewReviewComment] = useState('');
-  const [newReviewPhotoUrl, setNewReviewPhotoUrl] = useState('');
+  const [newReviewPhotos, setNewReviewPhotos] = useState([]);
+  const [newReviewPhotoInput, setNewReviewPhotoInput] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  const handleReviewPhotoUpload = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setNewReviewPhotos((prev) => [...prev, event.target.result]);
+        soundEffects.playClick();
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAddReviewPhotoUrl = () => {
+    const trimmed = newReviewPhotoInput.trim();
+    if (!trimmed) return;
+    setNewReviewPhotos((prev) => [...prev, trimmed]);
+    setNewReviewPhotoInput('');
+    soundEffects.playClick();
+  };
+
+  const handleRemoveReviewPhoto = (index) => {
+    soundEffects.playClick();
+    setNewReviewPhotos((prev) => prev.filter((_, idx) => idx !== index));
+  };
 
   // Fetch reviews when a product is opened in the modal
   useEffect(() => {
+    setActiveDetailImageIndex(0);
+    setNewReviewPhotos([]);
+    setNewReviewPhotoInput('');
     if (!selectedProduct) {
       setProductReviews([]);
       setReviewStats({ average_rating: 5.0, total_reviews: 0, customer_photos: [] });
@@ -194,6 +227,10 @@ export default function IndividualUserHome({
     setIsSubmittingReview(true);
     try {
       const ref = selectedProduct.id;
+      const allPhotos = [...newReviewPhotos];
+      if (newReviewPhotoInput.trim()) {
+        allPhotos.push(newReviewPhotoInput.trim());
+      }
       const res = await fetch(`/api/products/${ref}/reviews`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -203,7 +240,8 @@ export default function IndividualUserHome({
           rating: Number(newRating),
           title: newReviewTitle || `${newRating}-Star Botanical Review`,
           comment: newReviewComment,
-          photo_url: newReviewPhotoUrl.trim() || null
+          photo_url: allPhotos[0] || null,
+          photos: allPhotos
         })
       });
       const data = await res.json();
@@ -213,16 +251,17 @@ export default function IndividualUserHome({
         setReviewStats(prev => {
           const newTotal = prev.total_reviews + 1;
           const newAvg = Number((((prev.average_rating * prev.total_reviews) + Number(newRating)) / newTotal).toFixed(1));
-          const updatedPhotos = data.review.photo_url ? [data.review.photo_url, ...prev.customer_photos] : prev.customer_photos;
+          const reviewPhotos = data.review.photos?.length ? data.review.photos : (data.review.photo_url ? [data.review.photo_url] : []);
           return {
             average_rating: newAvg,
             total_reviews: newTotal,
-            customer_photos: updatedPhotos
+            customer_photos: [...reviewPhotos, ...prev.customer_photos]
           };
         });
         setNewReviewTitle('');
         setNewReviewComment('');
-        setNewReviewPhotoUrl('');
+        setNewReviewPhotos([]);
+        setNewReviewPhotoInput('');
         setIsAddingReview(false);
         setToastMessage('Thank you! Your verified customer review has been published.');
         setTimeout(() => setToastMessage(null), 3000);
@@ -2381,15 +2420,81 @@ export default function IndividualUserHome({
             {/* Modal Body: Two-Column Image & Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 my-4 sm:my-5 items-center">
 
-              {/* Product Photo */}
-              <div className={`aspect-[16/10] sm:aspect-square max-h-56 sm:max-h-none w-full rounded-2xl overflow-hidden border flex items-center justify-center ${currentTheme === 'dark' ? 'bg-slate-800 border-slate-700' : currentTheme === 'light' ? 'bg-stone-100 border-stone-200' : 'bg-pink-50 border-pink-100'
-                }`}>
-                <img
-                  src={selectedProduct.image || selectedProduct.image_url || '/pink_peonies_hero.jpg'}
-                  alt={selectedProduct.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              {/* Product Photo Gallery (Multiple Photos Supported) */}
+              {(() => {
+                const productDetailImages = (selectedProduct.images && selectedProduct.images.length > 0)
+                  ? selectedProduct.images
+                  : [selectedProduct.image || selectedProduct.image_url || '/pink_peonies_hero.jpg'];
+
+                return (
+                  <div className="space-y-2.5">
+                    <div className={`relative aspect-[16/10] sm:aspect-square max-h-60 sm:max-h-none w-full rounded-2xl overflow-hidden border flex items-center justify-center ${
+                      currentTheme === 'dark' ? 'bg-slate-800 border-slate-700' : currentTheme === 'light' ? 'bg-stone-100 border-stone-200' : 'bg-pink-50 border-pink-100'
+                    }`}>
+                      <img
+                        src={productDetailImages[activeDetailImageIndex] || productDetailImages[0] || '/pink_peonies_hero.jpg'}
+                        alt={selectedProduct.name}
+                        className="w-full h-full object-cover transition-all duration-300"
+                        onError={(e) => { e.target.src = '/pink_peonies_hero.jpg'; }}
+                      />
+                      {productDetailImages.length > 1 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDetailImageIndex((prev) => (prev > 0 ? prev - 1 : productDetailImages.length - 1));
+                            }}
+                            className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center text-sm font-bold shadow-md transition-all"
+                            title="Previous Photo"
+                          >
+                            ‹
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveDetailImageIndex((prev) => (prev < productDetailImages.length - 1 ? prev + 1 : 0));
+                            }}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/85 text-white flex items-center justify-center text-sm font-bold shadow-md transition-all"
+                            title="Next Photo"
+                          >
+                            ›
+                          </button>
+                          <span className="absolute bottom-2.5 right-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-black/70 text-white backdrop-blur-xs">
+                            {activeDetailImageIndex + 1} / {productDetailImages.length}
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Thumbnail strip for multiple images */}
+                    {productDetailImages.length > 1 && (
+                      <div className="flex items-center space-x-2 overflow-x-auto pb-1 scrollbar-thin">
+                        {productDetailImages.map((imgUrl, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setActiveDetailImageIndex(idx)}
+                            className={`w-14 h-14 rounded-xl border-2 overflow-hidden shrink-0 transition-all ${
+                              activeDetailImageIndex === idx
+                                ? 'border-emerald-600 ring-2 ring-emerald-500/30 scale-105'
+                                : 'border-stone-200 dark:border-slate-700 opacity-70 hover:opacity-100'
+                            }`}
+                          >
+                            <img
+                              src={imgUrl}
+                              alt={`Thumbnail ${idx + 1}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { e.target.src = '/pink_lily_bloom.jpg'; }}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Product Info */}
               <div className="space-y-3">
@@ -2672,28 +2777,77 @@ export default function IndividualUserHome({
                     />
                   </div>
 
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <Camera className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                  {/* Multiple Photo Attachment Section */}
+                  <div className="space-y-2 p-2.5 rounded-lg border border-stone-200 dark:border-slate-700 bg-stone-50/70 dark:bg-slate-800/50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-stone-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <Camera className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span>Customer Review Photos</span>
+                      </span>
+                      <span className="text-[10px] text-stone-400">
+                        {newReviewPhotos.length} {newReviewPhotos.length === 1 ? 'photo' : 'photos'} attached
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
                       <input
                         type="url"
-                        placeholder="Attach Photo URL (e.g. https://images.unsplash.com/...)"
-                        value={newReviewPhotoUrl}
-                        onChange={(e) => setNewReviewPhotoUrl(e.target.value)}
-                        className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 text-stone-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                        placeholder="Paste image URL (e.g. Unsplash or web photo)..."
+                        value={newReviewPhotoInput}
+                        onChange={(e) => setNewReviewPhotoInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddReviewPhotoUrl();
+                          }
+                        }}
+                        className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-stone-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
                       />
+                      <button
+                        type="button"
+                        onClick={handleAddReviewPhotoUrl}
+                        className="px-2.5 py-1.5 rounded-lg bg-stone-200 hover:bg-stone-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-stone-800 dark:text-slate-200 text-xs font-bold transition-colors"
+                      >
+                        + Add URL
+                      </button>
                     </div>
-                    {newReviewPhotoUrl && (
-                      <div className="mt-2 flex items-center space-x-2">
-                        <img
-                          src={newReviewPhotoUrl}
-                          alt="Preview"
-                          className="w-12 h-12 rounded-lg object-cover border border-stone-200 dark:border-slate-700"
-                          onError={(e) => { e.target.style.display = 'none'; }}
+
+                    <div className="flex items-center space-x-2">
+                      <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] transition-colors shadow-2xs">
+                        <Upload className="w-3 h-3" />
+                        <span>Upload Photos (Select Multiple)</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleReviewPhotoUpload}
+                          className="hidden"
                         />
-                        <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">
-                          ✓ Photo attached
-                        </span>
+                      </label>
+                      <span className="text-[10px] text-stone-400">Attach photos of blooming petals or packaging</span>
+                    </div>
+
+                    {/* Previews */}
+                    {newReviewPhotos.length > 0 && (
+                      <div className="flex items-center space-x-2 overflow-x-auto pt-1 pb-1">
+                        {newReviewPhotos.map((photoUrl, pIdx) => (
+                          <div key={pIdx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-emerald-400 shrink-0 group">
+                            <img
+                              src={photoUrl}
+                              alt={`Review attachment ${pIdx + 1}`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveReviewPhoto(pIdx)}
+                              className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-rose-600 text-white flex items-center justify-center text-[9px] font-bold shadow-xs hover:bg-rose-700"
+                              title="Remove photo"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -2774,18 +2928,22 @@ export default function IndividualUserHome({
                         {rev.review_text}
                       </p>
 
-                      {/* Review Photo & Helpful Action Footer */}
-                      <div className="flex items-center justify-between gap-3 mt-2.5 pt-2 border-t border-stone-100 dark:border-slate-700/50">
-                        {rev.photo_url ? (
-                          <div className="flex items-center space-x-2">
-                            <img
-                              src={rev.photo_url}
-                              alt="Customer photo"
-                              className="w-10 h-10 rounded-lg object-cover border border-stone-200 dark:border-slate-600 cursor-pointer hover:scale-125 transition-transform"
-                            />
-                            <span className="text-[10px] text-stone-400 flex items-center space-x-1">
+                      {/* Review Photos & Helpful Action Footer */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-2.5 pt-2 border-t border-stone-100 dark:border-slate-700/50">
+                        {((rev.photos && rev.photos.length > 0) || rev.photo_url) ? (
+                          <div className="flex items-center space-x-2 flex-wrap gap-y-1.5">
+                            {((rev.photos && rev.photos.length > 0) ? rev.photos : [rev.photo_url]).map((photoUrl, pIdx) => (
+                              <img
+                                key={pIdx}
+                                src={photoUrl}
+                                alt={`Customer photo ${pIdx + 1}`}
+                                className="w-10 h-10 rounded-lg object-cover border border-stone-200 dark:border-slate-600 cursor-pointer hover:scale-125 transition-transform"
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                              />
+                            ))}
+                            <span className="text-[10px] text-stone-400 flex items-center space-x-1 ml-1">
                               <Camera className="w-3 h-3" />
-                              <span>Customer Photo</span>
+                              <span>Verified Photos</span>
                             </span>
                           </div>
                         ) : (

@@ -101,8 +101,8 @@ def checkout():
         tax_sgst=sgst,
         tax_igst=0.0,
         total_amount=grand_total,
-        payment_method="razorpay_sandbox",
-        payment_status="paid",
+        payment_method="Cash on Delivery (COD)",
+        payment_status="Pending Payment on Delivery",
         order_status="dispatched",
         shipping_address=data.get("shipping_address", user.address or "Bangalore Residency Road")
     )
@@ -168,7 +168,7 @@ def checkout():
         print(f"[OrderRoutes] Courier notification error: {ex}")
 
     return jsonify({
-        "message": "Payment verified via Razorpay sandbox. Order confirmed & dispatched.",
+        "message": "Order confirmed via Cash on Delivery. Dispatched with official GST Tax Invoice.",
         "order": order.to_dict()
     }), 201
 

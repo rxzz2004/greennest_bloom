@@ -59,7 +59,15 @@ def create_product():
     is_perishable = bool(data.get("is_perishable", False))
     price = float(data.get("base_price") or data.get("price") or 100.0)
     stock = int(data.get("stock_quantity") or 50)
-    image_url = data.get("image_url") or "/pink_lily_bloom.jpg"
+    
+    images = data.get("images")
+    image_url = data.get("image_url")
+    if isinstance(images, list) and len(images) > 0:
+        import json
+        clean_images = [str(img).strip() for img in images if str(img).strip()]
+        image_url = json.dumps(clean_images) if clean_images else "/pink_lily_bloom.jpg"
+    elif not image_url:
+        image_url = "/pink_lily_bloom.jpg"
 
     product = Product(
         name=name,
@@ -98,7 +106,11 @@ def update_product(product_id):
         product.base_price = float(data.get("base_price") or data.get("price") or product.base_price)
     if "stock_quantity" in data:
         product.stock_quantity = int(data["stock_quantity"])
-    if "image_url" in data and data["image_url"]:
+    if "images" in data and isinstance(data["images"], list):
+        import json
+        clean_images = [str(img).strip() for img in data["images"] if str(img).strip()]
+        product.image_url = json.dumps(clean_images) if clean_images else "/pink_lily_bloom.jpg"
+    elif "image_url" in data and data["image_url"]:
         product.image_url = data["image_url"]
     if "botanical_name" in data:
         product.botanical_name = data["botanical_name"]

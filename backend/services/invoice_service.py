@@ -79,8 +79,8 @@ class InvoiceService:
                 "grand_total": grand_total
             },
             "payment_details": {
-                "method": order.payment_method,
-                "status": order.payment_status,
-                "transaction_ref": f"TXN_GNB_{order.id:06d}"
+                "method": "Cash on Delivery (COD)" if (not order.payment_method or "cod" in order.payment_method.lower() or "cash" in order.payment_method.lower() or "razorpay" in order.payment_method.lower()) else order.payment_method,
+                "status": "Payable on Delivery (COD)" if (not order.payment_status or "pending" in order.payment_status.lower() or "paid" in order.payment_status.lower()) else order.payment_status,
+                "transaction_ref": f"COD_GNB_{order.id:06d}"
             }
         }

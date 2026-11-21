@@ -104,7 +104,12 @@ export default function GSTInvoiceModal({ orderId, isOpen, onClose }) {
                   Place of Supply: <strong className="text-stone-900">{invoice.place_of_supply}</strong>
                 </div>
                 <div className="text-stone-600">
-                  Transaction Mode: <strong className="text-stone-900">{invoice.payment_details.method.toUpperCase()}</strong>
+                  Payment Mode: <strong className="text-stone-900">{invoice.payment_details?.method || 'Cash on Delivery (COD)'}</strong>
+                </div>
+                <div className="text-stone-600 mt-1">
+                  Payment Status: <span className="inline-block text-amber-900 bg-amber-100 font-bold px-2 py-0.5 rounded text-[10px] uppercase">
+                    {invoice.payment_details?.status || 'Payable on Delivery'}
+                  </span>
                 </div>
               </div>
             </div>

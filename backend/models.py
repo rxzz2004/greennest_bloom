@@ -1,4 +1,5 @@
 from datetime import datetime, date, timedelta
+import json
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -138,6 +139,23 @@ class Product(db.Model):
 
         effective_price = round(self.base_price * (1.0 - (decay_discount / 100.0)), 2)
 
+        images = []
+        if self.image_url:
+            try:
+                stripped = self.image_url.strip()
+                if stripped.startswith("["):
+                    parsed = json.loads(stripped)
+                    if isinstance(parsed, list):
+                        images = [str(item) for item in parsed if item]
+                elif "," in stripped and not stripped.startswith("data:"):
+                    images = [img.strip() for img in stripped.split(",") if img.strip()]
+                else:
+                    images = [stripped]
+            except Exception:
+                images = [self.image_url]
+
+        primary_image = images[0] if images else (self.image_url or "/pink_lily_bloom.jpg")
+
         return {
             "id": self.id,
             "name": self.name,
@@ -157,7 +175,8 @@ class Product(db.Model):
             "watering_frequency": self.watering_frequency,
             "vase_life_days": self.vase_life_days,
             "floriography_meaning": self.floriography_meaning,
-            "image_url": self.image_url,
+            "image_url": primary_image,
+            "images": images,
             "stock_quantity": self.stock_quantity,
         }
 
@@ -683,6 +702,23 @@ class ProductReview(db.Model):
     user = db.relationship("User", backref=db.backref("reviews", lazy=True))
 
     def to_dict(self):
+        photos = []
+        if self.photo_url:
+            try:
+                stripped = self.photo_url.strip()
+                if stripped.startswith("["):
+                    parsed = json.loads(stripped)
+                    if isinstance(parsed, list):
+                        photos = [str(item) for item in parsed if item]
+                elif "," in stripped and not stripped.startswith("data:"):
+                    photos = [p.strip() for p in stripped.split(",") if p.strip()]
+                else:
+                    photos = [stripped]
+            except Exception:
+                photos = [self.photo_url]
+
+        primary_photo = photos[0] if photos else self.photo_url
+
         return {
             "id": self.id,
             "product_id": self.product_id,
@@ -690,7 +726,8 @@ class ProductReview(db.Model):
             "rating": self.rating,
             "review_title": self.review_title,
             "review_text": self.review_text,
-            "photo_url": self.photo_url,
+            "photo_url": primary_photo,
+            "photos": photos,
             "is_verified_purchase": self.is_verified_purchase,
             "helpful_votes": self.helpful_votes,
             "created_at": self.created_at.isoformat() if self.created_at else None,

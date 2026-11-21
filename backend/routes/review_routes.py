@@ -39,7 +39,13 @@ def get_product_reviews(product_ref):
     for r in reviews:
         distribution[r.rating] = distribution.get(r.rating, 0) + 1
 
-    photos = [r.photo_url for r in reviews if r.photo_url]
+    review_dicts = [r.to_dict() for r in reviews]
+    photos = []
+    for rd in review_dicts:
+        if rd.get("photos"):
+            photos.extend(rd["photos"])
+        elif rd.get("photo_url"):
+            photos.append(rd["photo_url"])
 
     return jsonify({
         "status": "success",
@@ -49,7 +55,7 @@ def get_product_reviews(product_ref):
         "average_rating": avg_rating,
         "rating_distribution": distribution,
         "customer_photos": photos,
-        "reviews": [r.to_dict() for r in reviews]
+        "reviews": review_dicts
     }), 200
 
 @review_bp.route("/products/<product_ref>/reviews", methods=["POST"])
@@ -70,7 +76,16 @@ def add_product_review(product_ref):
 
     reviewer_name = (data.get("reviewer_name") or data.get("customer_name") or "Verified Plant Parent").strip()
     review_title = (data.get("review_title") or data.get("title") or f"{rating}-Star Botanical Experience").strip()
+    
+    photos = data.get("photos")
     photo_url = data.get("photo_url") or None
+    if isinstance(photos, list) and len(photos) > 0:
+        import json
+        clean_photos = [str(p).strip() for p in photos if str(p).strip()]
+        photo_url = json.dumps(clean_photos) if clean_photos else None
+    elif not photo_url and photos and isinstance(photos, str):
+        photo_url = photos
+
     user_id = data.get("user_id") or None
 
     new_review = ProductReview(

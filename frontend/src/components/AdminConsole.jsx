@@ -24,7 +24,7 @@ import {
   Bell,
   ChevronDown,
   ShoppingCart,
-  DollarSign,
+  IndianRupee,
   Heart,
   Trash2,
   Eye,
@@ -133,7 +133,8 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
   const [newIsPerishable, setNewIsPerishable] = useState(false);
   const [newPlantPrice, setNewPlantPrice] = useState('');
   const [newPlantStock, setNewPlantStock] = useState('50');
-  const [newPlantImage, setNewPlantImage] = useState('/pink_lily_bloom.jpg');
+  const [newPlantImages, setNewPlantImages] = useState(['/pink_lily_bloom.jpg']);
+  const [newPlantImageUrlInput, setNewPlantImageUrlInput] = useState('');
   const [newPlantDescription, setNewPlantDescription] = useState('');
   const [newSunlight, setNewSunlight] = useState('Bright Indirect Light');
   const [newWatering, setNewWatering] = useState('Water when topsoil feels dry');
@@ -318,14 +319,44 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
   ];
 
   const handlePhotoUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setNewPlantImage(event.target.result);
-      soundEffects.playClick();
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setNewPlantImages((prev) => {
+          const updated = [...prev, event.target.result];
+          return updated;
+        });
+        soundEffects.playClick();
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAddImageUrl = () => {
+    const trimmed = newPlantImageUrlInput.trim();
+    if (!trimmed) return;
+    setNewPlantImages((prev) => [...prev, trimmed]);
+    setNewPlantImageUrlInput('');
+    soundEffects.playClick();
+  };
+
+  const handleRemovePlantImage = (indexToRemove) => {
+    soundEffects.playClick();
+    setNewPlantImages((prev) => {
+      const filtered = prev.filter((_, idx) => idx !== indexToRemove);
+      return filtered.length > 0 ? filtered : ['/pink_lily_bloom.jpg'];
+    });
+  };
+
+  const handleSetPrimaryImage = (indexToPrimary) => {
+    soundEffects.playClick();
+    setNewPlantImages((prev) => {
+      const target = prev[indexToPrimary];
+      const remaining = prev.filter((_, idx) => idx !== indexToPrimary);
+      return [target, ...remaining];
+    });
   };
 
   const handleCreatePlantSubmit = async (e) => {
@@ -348,6 +379,7 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
     setIsSubmittingPlant(true);
     setPlantFeedbackMsg(null);
     try {
+      const imagesList = newPlantImages.filter(Boolean);
       const payload = {
         name: newPlantName.trim(),
         botanical_name: newBotanicalName.trim() || undefined,
@@ -356,7 +388,8 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
         base_price: priceNum,
         price: priceNum,
         stock_quantity: parseInt(newPlantStock, 10) || 50,
-        image_url: newPlantImage || '/pink_lily_bloom.jpg',
+        image_url: imagesList[0] || '/pink_lily_bloom.jpg',
+        images: imagesList.length > 0 ? imagesList : ['/pink_lily_bloom.jpg'],
         description: newPlantDescription.trim(),
         sunlight_requirement: !newIsPerishable ? newSunlight : undefined,
         watering_frequency: !newIsPerishable ? newWatering : undefined,
@@ -380,6 +413,8 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
         setNewBotanicalName('');
         setNewPlantPrice('');
         setNewPlantDescription('');
+        setNewPlantImages(['/pink_lily_bloom.jpg']);
+        setNewPlantImageUrlInput('');
         if (isCustomCategory) {
           setIsCustomCategory(false);
           setCustomCategoryInput('');
@@ -1319,9 +1354,9 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                     </div>
                   </div>
                   <div className="z-10 p-2 rounded-xl bg-white/10 backdrop-blur-xs">
-                    <DollarSign className="w-8 h-8 text-white/90" />
+                    <IndianRupee className="w-8 h-8 text-white/90" />
                   </div>
-                  <DollarSign className="w-32 h-32 text-white/10 absolute -right-4 -bottom-6 pointer-events-none" />
+                  <IndianRupee className="w-32 h-32 text-white/10 absolute -right-4 -bottom-6 pointer-events-none" />
                 </div>
 
                 {/* Card 3: New Customers (Amber Harvest) */}
@@ -1831,44 +1866,55 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                   </div>
                 </div>
 
-                {/* Photo & Image Section */}
-                <div className="space-y-2 p-3 bg-stone-50 rounded-2xl border border-stone-200">
-                  <label className="block font-bold text-stone-700">
-                    Photo of Plant / Stem <span className="text-rose-500">*</span>
-                  </label>
+                {/* Photo & Image Section (Multiple Photos Support) */}
+                <div className="space-y-3 p-3.5 bg-stone-50 rounded-2xl border border-stone-200">
+                  <div className="flex items-center justify-between">
+                    <label className="block font-bold text-stone-700">
+                      Product Photos <span className="text-rose-500">*</span>
+                    </label>
+                    <span className="text-[11px] font-mono text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full font-bold">
+                      {newPlantImages.length} {newPlantImages.length === 1 ? 'photo' : 'photos'} added
+                    </span>
+                  </div>
 
-                  <div className="flex items-center space-x-3">
-                    <div className="w-16 h-16 rounded-xl border border-stone-200 overflow-hidden bg-white shrink-0 shadow-2xs">
-                      <img
-                        src={newPlantImage || '/pink_lily_bloom.jpg'}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                        onError={(e) => { e.target.src = '/pink_lily_bloom.jpg'; }}
-                      />
-                    </div>
-
-                    <div className="flex-1 space-y-1.5">
+                  {/* Upload and URL input */}
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
                       <input
                         type="text"
-                        value={newPlantImage}
-                        onChange={(e) => setNewPlantImage(e.target.value)}
-                        placeholder="Paste image URL or relative path..."
-                        className="w-full px-2.5 py-1.5 text-[11px] rounded-lg border border-stone-300 font-mono bg-white"
+                        value={newPlantImageUrlInput}
+                        onChange={(e) => setNewPlantImageUrlInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddImageUrl();
+                          }
+                        }}
+                        placeholder="Paste image URL (e.g. /pink_peonies_hero.jpg)..."
+                        className="flex-1 px-2.5 py-1.5 text-[11px] rounded-lg border border-stone-300 font-mono bg-white"
                       />
+                      <button
+                        type="button"
+                        onClick={handleAddImageUrl}
+                        className="px-3 py-1.5 rounded-lg bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-[11px] transition-colors"
+                      >
+                        + Add URL
+                      </button>
+                    </div>
 
-                      <div className="flex items-center space-x-2">
-                        <label className="cursor-pointer inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] transition-colors">
-                          <Upload className="w-3 h-3" />
-                          <span>Upload File</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handlePhotoUpload}
-                            className="hidden"
-                          />
-                        </label>
-                        <span className="text-[10px] text-stone-400">or pick preset below:</span>
-                      </div>
+                    <div className="flex items-center space-x-2">
+                      <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[11px] transition-colors shadow-2xs">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Upload Photos (Select Multiple)</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                        />
+                      </label>
+                      <span className="text-[10px] text-stone-400">or add presets below:</span>
                     </div>
                   </div>
 
@@ -1880,17 +1926,65 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                         type="button"
                         onClick={() => {
                           soundEffects.playClick();
-                          setNewPlantImage(p.url);
+                          if (!newPlantImages.includes(p.url)) {
+                            setNewPlantImages((prev) => [...prev, p.url]);
+                          }
                         }}
                         className={`px-2 py-1 rounded-md text-[10px] font-semibold transition-all border ${
-                          newPlantImage === p.url
-                            ? 'bg-emerald-700 text-white border-emerald-700'
+                          newPlantImages.includes(p.url)
+                            ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold'
                             : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-100'
                         }`}
                       >
-                        {p.label}
+                        + {p.label}
                       </button>
                     ))}
+                  </div>
+
+                  {/* Thumbnail Previews Strip */}
+                  <div className="pt-2 border-t border-stone-200">
+                    <span className="text-[10px] uppercase font-bold text-stone-400 tracking-wider block mb-1.5">
+                      Attached Gallery Previews:
+                    </span>
+                    <div className="flex flex-wrap gap-2.5">
+                      {newPlantImages.map((imgSrc, idx) => (
+                        <div
+                          key={idx}
+                          className={`relative w-20 h-20 rounded-xl border-2 overflow-hidden bg-white shrink-0 group shadow-2xs ${
+                            idx === 0 ? 'border-emerald-600 ring-2 ring-emerald-500/20' : 'border-stone-200 hover:border-emerald-400'
+                          }`}
+                        >
+                          <img
+                            src={imgSrc}
+                            alt={`Product photo ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.target.src = '/pink_lily_bloom.jpg'; }}
+                          />
+                          {idx === 0 ? (
+                            <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[8px] font-bold bg-emerald-700 text-white shadow-xs">
+                              Primary
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSetPrimaryImage(idx)}
+                              title="Make Primary Photo"
+                              className="absolute bottom-1 left-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity px-1 py-0.5 rounded text-[8px] font-bold bg-black/70 text-white text-center hover:bg-black"
+                            >
+                              Set Primary
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRemovePlantImage(idx)}
+                            title="Remove Photo"
+                            className="absolute top-1 right-1 w-4 h-4 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center text-[10px] font-bold shadow-xs transition-colors"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -2082,6 +2176,12 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                             }`}>
                               {p.is_perishable ? 'Perishable Stem' : 'Living Plant'}
                             </span>
+                            {p.images && p.images.length > 1 && (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-100 text-indigo-800 flex items-center gap-1">
+                                <Image className="w-3 h-3" />
+                                <span>{p.images.length} Photos</span>
+                              </span>
+                            )}
                           </div>
 
                           {p.botanical_name && (
