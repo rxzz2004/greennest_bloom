@@ -369,7 +369,10 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
         soundEffects.playClick();
       } else {
         soundEffects.playSuccessChime();
-        setPlantFeedbackMsg({ type: 'success', text: `Added "${newPlantName}" under category "${finalCategory}" into database!` });
+        setPlantFeedbackMsg({ type: 'success', text: `"${newPlantName}" successfully added to the catalog under category "${finalCategory}"!` });
+        setTimeout(() => {
+          setPlantFeedbackMsg(null);
+        }, 5000);
         const pRes = await api.getProducts();
         if (pRes.products) setProducts(pRes.products);
         if (onProductsUpdated) onProductsUpdated();
@@ -383,14 +386,14 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
         }
       }
     } catch (err) {
-      setPlantFeedbackMsg({ type: 'error', text: 'Failed to add plant. Backend connection error.' });
+      setPlantFeedbackMsg({ type: 'error', text: 'Failed to add plant. Connection error.' });
     } finally {
       setIsSubmittingPlant(false);
     }
   };
 
   const handleDeletePlant = async (product) => {
-    if (!window.confirm(`Are you sure you want to delete "${product.name}" from the database?`)) {
+    if (!window.confirm(`Are you sure you want to remove "${product.name}" from the catalog?`)) {
       return;
     }
     soundEffects.playClick();
@@ -423,7 +426,6 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
         soundEffects.playSuccessChime();
         setProducts([]);
         if (onProductsUpdated) onProductsUpdated();
-        setPlantFeedbackMsg({ type: 'success', text: 'All previous dataset details removed successfully. Ready for new entries!' });
       }
     } catch (err) {
       console.error('Failed to clear all products:', err);
@@ -1626,27 +1628,14 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                 </h3>
               </div>
               <p className="text-xs text-stone-500 mt-1 max-w-2xl">
-                Enter details of new stems and living plants into the database with authentic photos, care descriptions, and custom categories. All newly added species immediately appear in the user storefront for browsing, searching, and checkout.
+                Add new stems, living plants, authentic photos, and care guides. All items added here immediately appear in your store catalog for customers to browse, search, and checkout.
               </p>
-            </div>
-
-            <div className="flex items-center space-x-3 shrink-0">
-              <button
-                type="button"
-                onClick={handleClearAllDataset}
-                disabled={isClearingAll || products.length === 0}
-                className="px-4 py-2.5 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-bold transition-all flex items-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                title="Wipe previous dataset to start fresh"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>{isClearingAll ? 'Clearing Database...' : 'Clear All Dataset (Fresh Start)'}</span>
-              </button>
             </div>
           </div>
 
-          {/* Feedback Alerts */}
+          {/* Feedback Alerts - Shown only when a new plant is added or validation occurs */}
           {plantFeedbackMsg && (
-            <div className={`p-4 rounded-2xl border text-xs flex items-center justify-between ${
+            <div className={`p-4 rounded-2xl border text-xs flex items-center justify-between animate-in fade-in ${
               plantFeedbackMsg.type === 'error'
                 ? 'bg-rose-50 border-rose-300 text-rose-900'
                 : 'bg-emerald-50 border-emerald-300 text-emerald-900'
@@ -1662,7 +1651,7 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
               <button
                 type="button"
                 onClick={() => setPlantFeedbackMsg(null)}
-                className="text-stone-400 hover:text-stone-700 font-bold p-1"
+                className="text-stone-400 hover:text-stone-700 font-bold p-1 cursor-pointer"
               >
                 ×
               </button>
@@ -1679,7 +1668,9 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                   <Plus className="w-4 h-4 text-emerald-700" />
                   <h4 className="font-bold text-stone-900 text-sm">Enter New Plant or Stem</h4>
                 </div>
-                <span className="text-[11px] font-mono font-bold text-stone-400">Database Entry</span>
+                <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-100">
+                  Catalog Form
+                </span>
               </div>
 
               <form onSubmit={handleCreatePlantSubmit} className="space-y-4 text-xs">
@@ -1962,7 +1953,7 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                   className="w-full py-3 rounded-xl bg-emerald-800 hover:bg-emerald-900 active:scale-98 text-white font-bold text-xs shadow-md shadow-emerald-900/10 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>{isSubmittingPlant ? 'Saving to Database...' : 'Add Plant / Stem to Database'}</span>
+                  <span>{isSubmittingPlant ? 'Saving to Catalog...' : 'Add Plant / Stem to Catalog'}</span>
                 </button>
               </form>
             </div>
@@ -2136,10 +2127,10 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                       <Leaf className="w-6 h-6" />
                     </div>
                     <h4 className="font-bold text-stone-900 text-sm">
-                      Database Ready for Admin Input
+                      No Plants or Stems in Catalog Yet
                     </h4>
                     <p className="text-xs text-stone-500 max-w-sm mx-auto">
-                      All previous dataset details have been removed. Use the form on the left to enter your first plant or cut stem into the system.
+                      Use the form on the left to add your first plant or fresh flower stem to the storefront catalog.
                     </p>
                   </div>
                 )}
@@ -2571,7 +2562,6 @@ export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdate
                     <span>Search</span>
                   </button>
                 </form>
-                <span className="text-xs text-stone-400 font-mono hidden md:inline">SQLite: delivery_partners</span>
               </div>
             </div>
 
