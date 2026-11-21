@@ -96,12 +96,6 @@ def create_app(config_overrides=None):
 
     with app.app_context():
         db.create_all()
-        try:
-            from models import Product
-            if Product.query.count() == 0:
-                sync_botanical_dataset_to_db()
-        except Exception:
-            pass
 
     return app, socketio
 

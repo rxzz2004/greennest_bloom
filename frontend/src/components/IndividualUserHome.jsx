@@ -667,11 +667,7 @@ export default function IndividualUserHome({
       };
     });
 
-    if (backendItems.length > 0) {
-      return backendItems;
-    }
-
-    return baseCatalogueList;
+    return backendItems;
   }, [products]);
 
   // Extract living nursery plants from fullCatalogue
@@ -721,6 +717,32 @@ export default function IndividualUserHome({
     return fullCatalogue.filter(item => Boolean(item.hasDecayDiscount));
   }, [fullCatalogue]);
 
+  // Extract dynamic categories directly from admin-entered products in database
+  const dynamicCategories = useMemo(() => {
+    const catsMap = {};
+    fullCatalogue.forEach((item) => {
+      const cat = item.raw_category || item.category || 'General';
+      catsMap[cat] = (catsMap[cat] || 0) + 1;
+    });
+
+    const pills = [
+      { id: 'everything', label: `All Flora (${fullCatalogue.length})` }
+    ];
+
+    if (discountedItems.length > 0) {
+      pills.push({ id: 'decay_markdowns', label: `Freshness Deals (${discountedItems.length})`, isMarkdown: true });
+    }
+
+    Object.keys(catsMap).sort().forEach((catName) => {
+      pills.push({
+        id: catName,
+        label: `${catName} (${catsMap[catName]})`
+      });
+    });
+
+    return pills;
+  }, [fullCatalogue, discountedItems]);
+
   // Filtered catalogue items based on Category Pill and global Search Query
   const filteredCatalogue = useMemo(() => {
     return fullCatalogue.filter((item) => {
@@ -730,35 +752,13 @@ export default function IndividualUserHome({
         matchesCategory = true;
       } else if (catalogueFilter === 'decay_markdowns') {
         matchesCategory = Boolean(item.hasDecayDiscount);
-      } else if (catalogueFilter === 'potted_plants') {
-        matchesCategory =
-          item.category === 'potted_plants' ||
-          item.raw_category === 'potted_plant' ||
-          item.category === 'fruit_plants' ||
-          item.category === 'vegetables' ||
-          item.category === 'herbs' ||
-          item.raw_category === 'fruit_plant' ||
-          item.raw_category === 'vegetable_plant' ||
-          item.raw_category === 'herb';
-      } else if (catalogueFilter === 'indoor_foliage') {
-        matchesCategory = item.category === 'potted_plants' || item.raw_category === 'potted_plant';
-      } else if (catalogueFilter === 'fruit_plants') {
-        matchesCategory = item.category === 'fruit_plants' || item.raw_category === 'fruit_plant';
-      } else if (catalogueFilter === 'vegetables') {
-        matchesCategory = item.category === 'vegetables' || item.raw_category === 'vegetable_plant';
-      } else if (catalogueFilter === 'herbs') {
-        matchesCategory = item.category === 'herbs' || item.raw_category === 'herb';
-      } else if (catalogueFilter === 'cut_flowers') {
-        matchesCategory = ['cut_flower', 'cut_flowers', 'roses', 'peonies', 'tulips', 'dahlias', 'sunflowers', 'marigolds'].includes(item.category) ||
-          item.raw_category === 'cut_flower';
-      } else if (catalogueFilter === 'roses') {
-        matchesCategory = item.category === 'roses' || item.name.toLowerCase().includes('rose');
-      } else if (catalogueFilter === 'marigolds') {
-        matchesCategory = item.category === 'marigolds' || item.name.toLowerCase().includes('marigold') || item.name.toLowerCase().includes('genda');
-      } else if (catalogueFilter === 'planters') {
-        matchesCategory = item.category === 'planters' || item.raw_category === 'planter' || item.raw_category === 'accessory';
       } else {
-        matchesCategory = item.category === catalogueFilter;
+        matchesCategory = (
+          item.raw_category === catalogueFilter ||
+          item.category === catalogueFilter ||
+          (item.category && item.category.toLowerCase() === catalogueFilter.toLowerCase()) ||
+          (item.raw_category && item.raw_category.toLowerCase() === catalogueFilter.toLowerCase())
+        );
       }
 
       // Search query check
@@ -1878,6 +1878,7 @@ export default function IndividualUserHome({
             )}
 
             {/* Living Potted Plants & Indoor Nursery Showcase Card */}
+            {livingNurseryPlants.length > 0 && (
             <div className={`rounded-[36px] p-6 sm:p-8 border shadow-lg space-y-6 transition-all ${currentTheme === 'dark'
                 ? 'bg-gradient-to-br from-slate-900 via-emerald-950/40 to-slate-900 border-emerald-500/30 text-white'
                 : currentTheme === 'light'
@@ -1957,38 +1958,7 @@ export default function IndividualUserHome({
 
               {/* Living Potted Plants Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-2">
-                {(displayedLivingPlants.length > 0 ? (livingPlantFilter === 'all' ? displayedLivingPlants.slice(0, 16) : displayedLivingPlants) : [
-                  {
-                    id: 13,
-                    name: 'Monstera Deliciosa',
-                    botanical_name: 'Monstera deliciosa',
-                    image: '/monstera_plant_pot.jpg',
-                    price: 29,
-                    inrPrice: 890,
-                    specs: '60 cm • Terracotta Planter',
-                    tag: 'Air Purifying'
-                  },
-                  {
-                    id: 14,
-                    name: 'Ficus Lyrata',
-                    botanical_name: 'Ficus lyrata',
-                    image: '/fiddle_fig_pot.jpg',
-                    price: 45,
-                    inrPrice: 1450,
-                    specs: '85 cm • Living Specimen',
-                    tag: 'Architectural'
-                  },
-                  {
-                    id: 15,
-                    name: 'Sansevieria Laurentii',
-                    botanical_name: 'Sansevieria trifasciata',
-                    image: '/snake_plant_pot.jpg',
-                    price: 18,
-                    inrPrice: 480,
-                    specs: '45 cm • Ceramic Pot',
-                    tag: 'NASA Air Purifier'
-                  }
-                ]).map((plant) => (
+                {(livingPlantFilter === 'all' ? displayedLivingPlants.slice(0, 16) : displayedLivingPlants).map((plant) => (
                   <div
                     key={plant.id}
                     onClick={() => handleOpenDetail(plant)}
@@ -2051,6 +2021,7 @@ export default function IndividualUserHome({
                 ))}
               </div>
             </div>
+            )}
           </>
         )}
 
@@ -2086,19 +2057,7 @@ export default function IndividualUserHome({
               <div className="flex flex-wrap items-center gap-3">
                 {/* Filter Category Pills */}
                 <div className="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar w-full sm:w-auto">
-                  {[
-                    { id: 'everything', label: `All Flora (${fullCatalogue.length})` },
-                    ...(discountedItems.length > 0 ? [{ id: 'decay_markdowns', label: `Freshness Deals (${discountedItems.length})`, isMarkdown: true }] : []),
-                    { id: 'potted_plants', label: `All Living Plants (${livingNurseryPlants.length})` },
-                    { id: 'indoor_foliage', label: 'Indoor Foliage (6)' },
-                    { id: 'fruit_plants', label: 'Fruit Trees & Palms (25)' },
-                    { id: 'vegetables', label: 'Kitchen Veggies (13)' },
-                    { id: 'herbs', label: 'Ayurvedic Herbs (6)' },
-                    { id: 'cut_flowers', label: 'Fresh Cut Blooms (15)' },
-                    { id: 'roses', label: 'Roses' },
-                    { id: 'marigolds', label: 'Marigolds (Genda)' },
-                    { id: 'planters', label: 'Planters & Pots (11)' }
-                  ].map((pill) => (
+                  {dynamicCategories.map((pill) => (
                     <button
                       key={pill.id}
                       onClick={() => {
@@ -2212,7 +2171,23 @@ export default function IndividualUserHome({
             {/* ========================================================= */}
             {/* CATALOGUE CONTENT: EDITORIAL MENU OR SQUARE BOXES GRID    */}
             {/* ========================================================= */}
-            {catalogueLayout === 'editorial' ? (
+            {filteredCatalogue.length === 0 ? (
+              <div className="text-center py-16 px-4 bg-stone-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-stone-300 dark:border-slate-800 space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-xs">
+                  <Leaf className="w-8 h-8" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-bold text-stone-900 dark:text-white">
+                    {searchQuery ? `No matches found for "${searchQuery}"` : 'Botanical Catalog Ready for New Species'}
+                  </h3>
+                  <p className="text-xs text-stone-500 dark:text-slate-400 max-w-md mx-auto">
+                    {searchQuery
+                      ? 'Try clearing the search query or selecting a different category filter.'
+                      : 'All previously added demo dataset details have been removed. The admin can now enter live plants, cut stems, photos, and descriptions one by one in the Admin Console.'}
+                  </p>
+                </div>
+              </div>
+            ) : catalogueLayout === 'editorial' ? (
               renderEditorialMenuList()
             ) : catalogueLayout === 'grid' ? (
               renderSquareBoxesGrid()

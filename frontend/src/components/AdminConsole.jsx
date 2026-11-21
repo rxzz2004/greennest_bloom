@@ -30,13 +30,19 @@ import {
   Eye,
   AlertTriangle,
   KeyRound,
-  ShieldAlert
+  ShieldAlert,
+  Leaf,
+  Image,
+  Upload,
+  Tag,
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 import { api } from '../api';
 import { soundEffects } from '../utils/audio';
 import CourierPortal from './CourierPortal';
 
-export default function AdminConsole({ onOpenLiveTrackingModal, currentTheme = 'rose' }) {
+export default function AdminConsole({ onOpenLiveTrackingModal, onProductsUpdated, currentTheme = 'rose' }) {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showCourierPortal, setShowCourierPortal] = useState(false);
   const [courierModalDriverId, setCourierModalDriverId] = useState(1);
@@ -116,6 +122,162 @@ export default function AdminConsole({ onOpenLiveTrackingModal, currentTheme = '
   // Selected email alert preview modal & filtering
   const [selectedAlertModal, setSelectedAlertModal] = useState(null);
   const [alertFilter, setAlertFilter] = useState('all');
+
+  // Stems & Plants Inventory Management State
+  const [newPlantName, setNewPlantName] = useState('');
+  const [newBotanicalName, setNewBotanicalName] = useState('');
+  const [newPlantCategory, setNewPlantCategory] = useState('Living Nursery Plants');
+  const [customCategoryInput, setCustomCategoryInput] = useState('');
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [newIsPerishable, setNewIsPerishable] = useState(false);
+  const [newPlantPrice, setNewPlantPrice] = useState('');
+  const [newPlantStock, setNewPlantStock] = useState('50');
+  const [newPlantImage, setNewPlantImage] = useState('/pink_lily_bloom.jpg');
+  const [newPlantDescription, setNewPlantDescription] = useState('');
+  const [newSunlight, setNewSunlight] = useState('Bright Indirect Light');
+  const [newWatering, setNewWatering] = useState('Water when topsoil feels dry');
+  const [newVaseLife, setNewVaseLife] = useState('7');
+  const [isSubmittingPlant, setIsSubmittingPlant] = useState(false);
+  const [plantFeedbackMsg, setPlantFeedbackMsg] = useState(null);
+  const [plantSearchQuery, setPlantSearchQuery] = useState('');
+  const [plantCategoryFilter, setPlantCategoryFilter] = useState('all');
+  const [isClearingAll, setIsClearingAll] = useState(false);
+
+  const BOTANICAL_PHOTO_PRESETS = [
+    { label: 'Pink Oriental Lily', url: '/pink_lily_bloom.jpg' },
+    { label: 'Monstera Deliciosa', url: '/monstera_plant_pot.jpg' },
+    { label: 'Fiddle Leaf Fig', url: '/fiddle_fig_pot.jpg' },
+    { label: 'Snake Plant', url: '/snake_plant_pot.jpg' },
+    { label: 'Rose Bouquet', url: '/rose_flower_bouquet.jpg' },
+    { label: 'Pink Peonies', url: '/pink_peonies_hero.jpg' }
+  ];
+
+  const PREDEFINED_CATEGORIES = [
+    'Living Nursery Plants',
+    'Cut Flowers & Stems',
+    'Exotic Lilies',
+    'Indoor Foliage & Palms',
+    'Aromatic & Ayurvedic Herbs',
+    'Fruit Plants & Trees',
+    'Kitchen Veggies',
+    'Bonsai & Terrariums',
+    'Designer Planters & Pots'
+  ];
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setNewPlantImage(event.target.result);
+      soundEffects.playClick();
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCreatePlantSubmit = async (e) => {
+    e.preventDefault();
+    if (!newPlantName.trim()) {
+      setPlantFeedbackMsg({ type: 'error', text: 'Please enter the plant or stem name.' });
+      return;
+    }
+    const finalCategory = isCustomCategory ? customCategoryInput.trim() : newPlantCategory.trim();
+    if (!finalCategory) {
+      setPlantFeedbackMsg({ type: 'error', text: 'Please specify a category for this botanical item.' });
+      return;
+    }
+    const priceNum = parseFloat(newPlantPrice);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      setPlantFeedbackMsg({ type: 'error', text: 'Please enter a valid price in ₹.' });
+      return;
+    }
+
+    setIsSubmittingPlant(true);
+    setPlantFeedbackMsg(null);
+    try {
+      const payload = {
+        name: newPlantName.trim(),
+        botanical_name: newBotanicalName.trim() || undefined,
+        category: finalCategory,
+        is_perishable: newIsPerishable,
+        base_price: priceNum,
+        price: priceNum,
+        stock_quantity: parseInt(newPlantStock, 10) || 50,
+        image_url: newPlantImage || '/pink_lily_bloom.jpg',
+        description: newPlantDescription.trim(),
+        sunlight_requirement: !newIsPerishable ? newSunlight : undefined,
+        watering_frequency: !newIsPerishable ? newWatering : undefined,
+        vase_life_days: newIsPerishable ? parseInt(newVaseLife, 10) || 7 : undefined
+      };
+
+      const res = await api.createProduct(payload);
+      if (res.error) {
+        setPlantFeedbackMsg({ type: 'error', text: res.error });
+        soundEffects.playClick();
+      } else {
+        soundEffects.playSuccessChime();
+        setPlantFeedbackMsg({ type: 'success', text: `Added "${newPlantName}" under category "${finalCategory}" into database!` });
+        const pRes = await api.getProducts();
+        if (pRes.products) setProducts(pRes.products);
+        if (onProductsUpdated) onProductsUpdated();
+        setNewPlantName('');
+        setNewBotanicalName('');
+        setNewPlantPrice('');
+        setNewPlantDescription('');
+        if (isCustomCategory) {
+          setIsCustomCategory(false);
+          setCustomCategoryInput('');
+        }
+      }
+    } catch (err) {
+      setPlantFeedbackMsg({ type: 'error', text: 'Failed to add plant. Backend connection error.' });
+    } finally {
+      setIsSubmittingPlant(false);
+    }
+  };
+
+  const handleDeletePlant = async (product) => {
+    if (!window.confirm(`Are you sure you want to delete "${product.name}" from the database?`)) {
+      return;
+    }
+    soundEffects.playClick();
+    try {
+      const res = await api.deleteProduct(product.id);
+      if (res.error) {
+        alert(res.error);
+      } else {
+        soundEffects.playSuccessChime();
+        const pRes = await api.getProducts();
+        if (pRes.products) setProducts(pRes.products);
+        if (onProductsUpdated) onProductsUpdated();
+      }
+    } catch (err) {
+      console.error('Failed to delete product:', err);
+    }
+  };
+
+  const handleClearAllDataset = async () => {
+    if (!window.confirm('CAUTION: This will delete ALL current products, stems, and batches from the database for a clean fresh start. Continue?')) {
+      return;
+    }
+    setIsClearingAll(true);
+    soundEffects.playClick();
+    try {
+      const res = await api.clearAllProducts();
+      if (res.error) {
+        alert(res.error);
+      } else {
+        soundEffects.playSuccessChime();
+        setProducts([]);
+        if (onProductsUpdated) onProductsUpdated();
+        setPlantFeedbackMsg({ type: 'success', text: 'All previous dataset details removed successfully. Ready for new entries!' });
+      }
+    } catch (err) {
+      console.error('Failed to clear all products:', err);
+    } finally {
+      setIsClearingAll(false);
+    }
+  };
 
   const formatAlertTime = (dateStr) => {
     if (!dateStr) return '';
@@ -581,6 +743,29 @@ export default function AdminConsole({ onOpenLiveTrackingModal, currentTheme = '
               <button
                 onClick={() => {
                   soundEffects.playClick();
+                  setActiveTab('stems_and_plants');
+                }}
+                className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-3' : 'justify-center'} py-2.5 rounded-xl transition-all ${
+                  activeTab === 'stems_and_plants'
+                    ? 'bg-emerald-50 text-emerald-900 font-bold border-r-4 border-emerald-700'
+                    : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+                }`}
+                title="Stems & Plants"
+              >
+                <div className="flex items-center space-x-3">
+                  <Leaf className={`w-4 h-4 shrink-0 ${activeTab === 'stems_and_plants' ? 'text-emerald-700' : 'text-stone-400'}`} />
+                  {sidebarOpen && <span>Stems &amp; Plants</span>}
+                </div>
+                {sidebarOpen && (
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md font-mono font-bold">
+                    {products.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  soundEffects.playClick();
                   setActiveTab('decay_batches');
                 }}
                 className={`w-full flex items-center ${sidebarOpen ? 'justify-between px-3' : 'justify-center'} py-2.5 rounded-xl transition-all ${
@@ -834,7 +1019,7 @@ export default function AdminConsole({ onOpenLiveTrackingModal, currentTheme = '
               </button>
               <span>/</span>
               <span className="font-bold text-stone-800 capitalize">
-                {activeTab === 'decay_batches' ? 'Fresh Flowers' : activeTab === 'delivery_fleet' ? 'Delivery' : activeTab === 'quotations' ? 'Quotes' : activeTab === 'curation_metrics' ? 'Subscriptions' : activeTab === 'user_accounts' ? 'Customers' : activeTab === 'system_alerts' ? 'Alerts' : activeTab.replace('_', ' ')}
+                {activeTab === 'stems_and_plants' ? 'Stems & Plants' : activeTab === 'decay_batches' ? 'Fresh Flowers' : activeTab === 'delivery_fleet' ? 'Delivery' : activeTab === 'quotations' ? 'Quotes' : activeTab === 'curation_metrics' ? 'Subscriptions' : activeTab === 'user_accounts' ? 'Customers' : activeTab === 'system_alerts' ? 'Alerts' : activeTab.replace('_', ' ')}
               </span>
             </div>
           )}
@@ -1160,6 +1345,514 @@ export default function AdminConsole({ onOpenLiveTrackingModal, currentTheme = '
             </div>
           )}
 
+
+{/* TAB: Stems & Plants Inventory Management */}
+      {activeTab === 'stems_and_plants' && (
+        <div className="space-y-6">
+          {/* Header Banner */}
+          <div className="bg-white rounded-3xl border border-stone-200 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="p-2 rounded-xl bg-emerald-100 text-emerald-800">
+                  <Leaf className="w-5 h-5" />
+                </span>
+                <h3 className="font-serif text-2xl font-bold text-stone-900">
+                  Stems &amp; Plants Management
+                </h3>
+              </div>
+              <p className="text-xs text-stone-500 mt-1 max-w-2xl">
+                Enter details of new stems and living plants into the database with authentic photos, care descriptions, and custom categories. All newly added species immediately appear in the user storefront for browsing, searching, and checkout.
+              </p>
+            </div>
+
+            <div className="flex items-center space-x-3 shrink-0">
+              <button
+                type="button"
+                onClick={handleClearAllDataset}
+                disabled={isClearingAll || products.length === 0}
+                className="px-4 py-2.5 rounded-xl border border-rose-300 text-rose-700 hover:bg-rose-50 text-xs font-bold transition-all flex items-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                title="Wipe previous dataset to start fresh"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>{isClearingAll ? 'Clearing Database...' : 'Clear All Dataset (Fresh Start)'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Feedback Alerts */}
+          {plantFeedbackMsg && (
+            <div className={`p-4 rounded-2xl border text-xs flex items-center justify-between ${
+              plantFeedbackMsg.type === 'error'
+                ? 'bg-rose-50 border-rose-300 text-rose-900'
+                : 'bg-emerald-50 border-emerald-300 text-emerald-900'
+            }`}>
+              <div className="flex items-center space-x-2">
+                {plantFeedbackMsg.type === 'error' ? (
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                )}
+                <span className="font-semibold">{plantFeedbackMsg.text}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPlantFeedbackMsg(null)}
+                className="text-stone-400 hover:text-stone-700 font-bold p-1"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          {/* Main 2-Column Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            {/* LEFT COLUMN: Add New Plant/Stem Form (5 cols) */}
+            <div className="lg:col-span-5 bg-white rounded-3xl border border-stone-200 p-6 shadow-xs space-y-5">
+              <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                <div className="flex items-center space-x-2">
+                  <Plus className="w-4 h-4 text-emerald-700" />
+                  <h4 className="font-bold text-stone-900 text-sm">Enter New Plant or Stem</h4>
+                </div>
+                <span className="text-[11px] font-mono font-bold text-stone-400">Database Entry</span>
+              </div>
+
+              <form onSubmit={handleCreatePlantSubmit} className="space-y-4 text-xs">
+                {/* Botanical Classification Toggle */}
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1.5">Botanical Type</label>
+                  <div className="grid grid-cols-2 gap-2 bg-stone-100 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundEffects.playClick();
+                        setNewIsPerishable(false);
+                        if (!isCustomCategory && newPlantCategory === 'Cut Flowers & Stems') {
+                          setNewPlantCategory('Living Nursery Plants');
+                        }
+                      }}
+                      className={`py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center space-x-1.5 ${
+                        !newIsPerishable
+                          ? 'bg-white text-emerald-900 shadow-xs'
+                          : 'text-stone-600 hover:text-stone-900'
+                      }`}
+                    >
+                      <Leaf className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Living Plant</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundEffects.playClick();
+                        setNewIsPerishable(true);
+                        if (!isCustomCategory && newPlantCategory === 'Living Nursery Plants') {
+                          setNewPlantCategory('Cut Flowers & Stems');
+                        }
+                      }}
+                      className={`py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center space-x-1.5 ${
+                        newIsPerishable
+                          ? 'bg-white text-rose-900 shadow-xs'
+                          : 'text-stone-600 hover:text-stone-900'
+                      }`}
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Cut Stem / Bloom</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Plant Name */}
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">
+                    Plant / Stem Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newPlantName}
+                    onChange={(e) => setNewPlantName(e.target.value)}
+                    placeholder="e.g. Pink Oriental Lily or Monstera Deliciosa"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-800 font-medium"
+                  />
+                </div>
+
+                {/* Botanical / Scientific Name */}
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">
+                    Botanical / Scientific Name (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={newBotanicalName}
+                    onChange={(e) => setNewBotanicalName(e.target.value)}
+                    placeholder="e.g. Lilium orientalis or Monstera deliciosa"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-800 italic"
+                  />
+                </div>
+
+                {/* Category Selection & Custom Category Option */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="font-bold text-stone-700">
+                      Storefront Category <span className="text-rose-500">*</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        soundEffects.playClick();
+                        setIsCustomCategory(!isCustomCategory);
+                      }}
+                      className="text-[11px] text-emerald-800 font-bold hover:underline cursor-pointer"
+                    >
+                      {isCustomCategory ? 'Choose Predefined Category' : '+ Enter Custom Category'}
+                    </button>
+                  </div>
+
+                  {!isCustomCategory ? (
+                    <select
+                      value={newPlantCategory}
+                      onChange={(e) => {
+                        if (e.target.value === '__custom__') {
+                          setIsCustomCategory(true);
+                        } else {
+                          setNewPlantCategory(e.target.value);
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-800 font-medium bg-white"
+                    >
+                      {PREDEFINED_CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                      <option value="__custom__">+ Enter Custom Category...</option>
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      required
+                      value={customCategoryInput}
+                      onChange={(e) => setCustomCategoryInput(e.target.value)}
+                      placeholder="Type custom category (e.g. Exotic Orchids, Tabletop Ferns)..."
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-emerald-500 ring-2 ring-emerald-500/20 text-stone-800 font-medium"
+                    />
+                  )}
+                  <span className="text-[10px] text-stone-400 mt-1 block">
+                    This category will automatically appear as a filter tab for customers in the storefront catalog.
+                  </span>
+                </div>
+
+                {/* Price & Stock Quantity */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-stone-700 mb-1">
+                      Price (₹) <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-bold">₹</span>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        step="1"
+                        value={newPlantPrice}
+                        onChange={(e) => setNewPlantPrice(e.target.value)}
+                        placeholder="299"
+                        className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-800 font-mono font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-stone-700 mb-1">Stock Quantity</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={newPlantStock}
+                      onChange={(e) => setNewPlantStock(e.target.value)}
+                      placeholder="50"
+                      className="w-full px-3 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-800 font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* Photo & Image Section */}
+                <div className="space-y-2 p-3 bg-stone-50 rounded-2xl border border-stone-200">
+                  <label className="block font-bold text-stone-700">
+                    Photo of Plant / Stem <span className="text-rose-500">*</span>
+                  </label>
+
+                  <div className="flex items-center space-x-3">
+                    <div className="w-16 h-16 rounded-xl border border-stone-200 overflow-hidden bg-white shrink-0 shadow-2xs">
+                      <img
+                        src={newPlantImage || '/pink_lily_bloom.jpg'}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                        onError={(e) => { e.target.src = '/pink_lily_bloom.jpg'; }}
+                      />
+                    </div>
+
+                    <div className="flex-1 space-y-1.5">
+                      <input
+                        type="text"
+                        value={newPlantImage}
+                        onChange={(e) => setNewPlantImage(e.target.value)}
+                        placeholder="Paste image URL or relative path..."
+                        className="w-full px-2.5 py-1.5 text-[11px] rounded-lg border border-stone-300 font-mono bg-white"
+                      />
+
+                      <div className="flex items-center space-x-2">
+                        <label className="cursor-pointer inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-[10px] transition-colors">
+                          <Upload className="w-3 h-3" />
+                          <span>Upload File</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoUpload}
+                            className="hidden"
+                          />
+                        </label>
+                        <span className="text-[10px] text-stone-400">or pick preset below:</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Photo Presets */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {BOTANICAL_PHOTO_PRESETS.map((p) => (
+                      <button
+                        key={p.url}
+                        type="button"
+                        onClick={() => {
+                          soundEffects.playClick();
+                          setNewPlantImage(p.url);
+                        }}
+                        className={`px-2 py-1 rounded-md text-[10px] font-semibold transition-all border ${
+                          newPlantImage === p.url
+                            ? 'bg-emerald-700 text-white border-emerald-700'
+                            : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-100'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Botanical Care Details */}
+                {!newIsPerishable ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Sunlight</label>
+                      <input
+                        type="text"
+                        value={newSunlight}
+                        onChange={(e) => setNewSunlight(e.target.value)}
+                        placeholder="Bright Indirect Light"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-stone-700 mb-1">Watering</label>
+                      <input
+                        type="text"
+                        value={newWatering}
+                        onChange={(e) => setNewWatering(e.target.value)}
+                        placeholder="Water every 3-4 days"
+                        className="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block font-bold text-stone-700 mb-1">Vase Life (Days)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={newVaseLife}
+                      onChange={(e) => setNewVaseLife(e.target.value)}
+                      placeholder="7"
+                      className="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs font-mono"
+                    />
+                  </div>
+                )}
+
+                {/* Description & Care Guide */}
+                <div>
+                  <label className="block font-bold text-stone-700 mb-1">
+                    Botanical Description &amp; Characteristics
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={newPlantDescription}
+                    onChange={(e) => setNewPlantDescription(e.target.value)}
+                    placeholder="Describe foliage, bloom aroma, floriography meaning, air-purifying qualities, and staging tips..."
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-700 text-stone-800 leading-relaxed"
+                  />
+                </div>
+
+                {/* Submit Action Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmittingPlant}
+                  className="w-full py-3 rounded-xl bg-emerald-800 hover:bg-emerald-900 active:scale-98 text-white font-bold text-xs shadow-md shadow-emerald-900/10 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{isSubmittingPlant ? 'Saving to Database...' : 'Add Plant / Stem to Database'}</span>
+                </button>
+              </form>
+            </div>
+
+            {/* RIGHT COLUMN: Database Active Inventory & Categories (7 cols) */}
+            <div className="lg:col-span-7 space-y-4">
+              
+              {/* Filter & Search Bar */}
+              <div className="bg-white rounded-3xl border border-stone-200 p-4 shadow-xs space-y-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="relative flex-1">
+                    <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={plantSearchQuery}
+                      onChange={(e) => setPlantSearchQuery(e.target.value)}
+                      placeholder="Search active plants by name, botanical name, or category..."
+                      className="w-full pl-9 pr-4 py-2 rounded-xl border border-stone-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-stone-500 whitespace-nowrap self-center">
+                    Total: <strong className="text-stone-900">{products.length}</strong> items
+                  </span>
+                </div>
+
+                {/* Category Filter Pills */}
+                <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setPlantCategoryFilter('all')}
+                    className={`px-3 py-1 rounded-full font-bold whitespace-nowrap transition-all ${
+                      plantCategoryFilter === 'all'
+                        ? 'bg-emerald-800 text-white shadow-xs'
+                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    }`}
+                  >
+                    All ({products.length})
+                  </button>
+                  {Array.from(new Set(products.map(p => p.category).filter(Boolean))).map((cat) => {
+                    const count = products.filter(p => p.category === cat).length;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setPlantCategoryFilter(cat)}
+                        className={`px-3 py-1 rounded-full font-bold whitespace-nowrap transition-all ${
+                          plantCategoryFilter === cat
+                            ? 'bg-emerald-800 text-white shadow-xs'
+                            : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                        }`}
+                      >
+                        {cat} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Products List / Cards */}
+              <div className="space-y-3">
+                {products
+                  .filter((p) => {
+                    const matchesCategory = plantCategoryFilter === 'all' || p.category === plantCategoryFilter;
+                    const q = plantSearchQuery.trim().toLowerCase();
+                    const matchesQuery = !q || 
+                      p.name.toLowerCase().includes(q) || 
+                      (p.botanical_name && p.botanical_name.toLowerCase().includes(q)) ||
+                      (p.category && p.category.toLowerCase().includes(q)) ||
+                      (p.floriography_meaning && p.floriography_meaning.toLowerCase().includes(q));
+                    return matchesCategory && matchesQuery;
+                  })
+                  .map((p) => (
+                    <div
+                      key={p.id}
+                      className="bg-white rounded-2xl border border-stone-200 p-4 shadow-xs hover:border-emerald-300 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                    >
+                      <div className="flex items-start space-x-3.5 flex-1 min-w-0">
+                        <div className="w-16 h-16 rounded-xl border border-stone-200 overflow-hidden bg-stone-50 shrink-0">
+                          <img
+                            src={p.image_url || '/pink_lily_bloom.jpg'}
+                            alt={p.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.target.src = '/pink_lily_bloom.jpg'; }}
+                          />
+                        </div>
+
+                        <div className="space-y-1 min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="font-bold text-stone-900 text-sm">{p.name}</span>
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                              {p.category}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold ${
+                              p.is_perishable ? 'bg-rose-100 text-rose-800' : 'bg-teal-100 text-teal-800'
+                            }`}>
+                              {p.is_perishable ? 'Perishable Stem' : 'Living Plant'}
+                            </span>
+                          </div>
+
+                          {p.botanical_name && (
+                            <p className="text-[11px] text-stone-500 italic">{p.botanical_name}</p>
+                          )}
+
+                          {p.floriography_meaning && (
+                            <p className="text-[11px] text-stone-600 line-clamp-2 leading-relaxed">
+                              {p.floriography_meaning}
+                            </p>
+                          )}
+
+                          <div className="flex flex-wrap items-center gap-3 text-[11px] text-stone-400 font-mono pt-1">
+                            <span>ID: #{p.id}</span>
+                            <span>Stock: {p.stock_quantity || 50} units</span>
+                            {p.sunlight_requirement && <span>{p.sunlight_requirement}</span>}
+                            {p.vase_life_days > 0 && <span>Vase life: {p.vase_life_days}d</span>}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100">
+                        <span className="text-base font-bold font-mono text-emerald-900">
+                          ₹{p.base_price || p.price}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePlant(p)}
+                          className="px-3 py-1.5 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 font-bold text-xs transition-all flex items-center space-x-1 cursor-pointer"
+                          title="Delete from database"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                {products.length === 0 && (
+                  <div className="text-center py-16 px-4 bg-white rounded-3xl border border-dashed border-stone-300 space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center mx-auto">
+                      <Leaf className="w-6 h-6" />
+                    </div>
+                    <h4 className="font-bold text-stone-900 text-sm">
+                      Database Ready for Admin Input
+                    </h4>
+                    <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                      All previous dataset details have been removed. Use the form on the left to enter your first plant or cut stem into the system.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
 {/* TAB 1: Perishable Flower Batches */}
       {activeTab === 'decay_batches' && (

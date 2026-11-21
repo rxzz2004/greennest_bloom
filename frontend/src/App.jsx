@@ -314,15 +314,16 @@ export default function App() {
   };
 
   // Load products on mount
-  useEffect(() => {
-    async function loadProducts() {
-      try {
-        const res = await api.getProducts();
-        if (res.products) setProducts(res.products);
-      } catch (err) {
-        console.error('Failed to load products:', err);
-      }
+  const loadProducts = async () => {
+    try {
+      const res = await api.getProducts();
+      if (res.products) setProducts(res.products);
+    } catch (err) {
+      console.error('Failed to load products:', err);
     }
+  };
+
+  useEffect(() => {
     loadProducts();
   }, []);
 
@@ -599,6 +600,7 @@ export default function App() {
           currentUser?.user_type === 'admin' ? (
             <AdminConsole
               currentTheme={theme}
+              onProductsUpdated={loadProducts}
               onOpenLiveTrackingModal={(orderId) => {
                 soundEffects.playClick();
                 setTrackingOrderId(orderId);

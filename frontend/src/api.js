@@ -104,6 +104,38 @@ export const api = {
     const res = await fetch(`${API_BASE}/products?${query}`);
     return res.json();
   },
+  getProductCategories: async () => {
+    const res = await fetch(`${API_BASE}/products/categories`);
+    return res.json();
+  },
+  createProduct: async (productData) => {
+    const res = await fetch(`${API_BASE}/products`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(productData)
+    });
+    return res.json();
+  },
+  updateProduct: async (productId, productData) => {
+    const res = await fetch(`${API_BASE}/products/${productId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(productData)
+    });
+    return res.json();
+  },
+  deleteProduct: async (productId) => {
+    const res = await fetch(`${API_BASE}/products/${productId}`, {
+      method: 'DELETE'
+    });
+    return res.json();
+  },
+  clearAllProducts: async () => {
+    const res = await fetch(`${API_BASE}/products/clear-all`, {
+      method: 'POST'
+    });
+    return res.json();
+  },
 
   // Perishable Batches & Decay
   getBatches: async () => {
