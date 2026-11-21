@@ -34,3 +34,5 @@ frontend/.env.*.local
 # Large binary document exports
 *.pages
 
+.neon
+.env.local

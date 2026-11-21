@@ -95,7 +95,10 @@ def create_app(config_overrides=None):
         })
 
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as e:
+            print(f"[DB Notice] Database table verification: {e}")
 
     return app, socketio
 

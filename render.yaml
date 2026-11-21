@@ -8,6 +8,8 @@ services:
     buildCommand: "./build.sh"
     startCommand: "gunicorn -w 1 --threads 4 -b 0.0.0.0:$PORT wsgi:app"
     envVars:
+      - key: DATABASE_URL
+        value: "postgresql://neondb_owner:npg_4f6UjTsEnSKl@ep-muddy-block-bihevxuy-pooler.c-5.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: NODE_VERSION

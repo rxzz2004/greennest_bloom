@@ -4,15 +4,21 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# Load environment variables from backend/.env and project root .env
+# Load environment variables from .env.local, backend/.env and project root .env
+load_dotenv(BASE_DIR.parent / ".env.local")
 load_dotenv(BASE_DIR / ".env")
 load_dotenv(BASE_DIR.parent / ".env")
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "green-nest-bloom-mca-secret-2026")
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL", f"sqlite:///{BASE_DIR / 'greennest_bloom.db'}"
-    )
+    
+    _raw_db_url = os.getenv("DATABASE_URL")
+    if _raw_db_url:
+        if _raw_db_url.startswith("postgres://"):
+            _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
+        SQLALCHEMY_DATABASE_URI = _raw_db_url
+    else:
+        SQLALCHEMY_DATABASE_URI = f"sqlite:///{BASE_DIR / 'greennest_bloom.db'}"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # SMTP / Alert Settings
