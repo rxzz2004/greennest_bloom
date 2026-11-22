@@ -414,7 +414,7 @@ Fleet courier records for refrigerated EV delivery van operators.
 - `active_order_id`: INTEGER, Foreign Key references `orders(id)`, Nullable
 - `shift_start`: VARCHAR(20), Default: `'08:00 AM'`
 - `shift_end`: VARCHAR(20), Default: `'05:00 PM'`
-- `zone`: VARCHAR(80), Default: `'Bengaluru Central Corridor'`
+- `zone`: VARCHAR(80), Default: `'Western Ghats Central Corridor'`
 - `created_at`: DATETIME, Default: `datetime.utcnow`
 - `updated_at`: DATETIME, Default: `datetime.utcnow`
 
