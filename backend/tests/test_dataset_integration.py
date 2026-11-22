@@ -9,6 +9,9 @@ from services.prophet_service import ProphetService
 def client():
     app, _ = create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:"})
     with app.app_context():
+        from routes.dataset_routes import sync_botanical_dataset_to_db
+        sync_botanical_dataset_to_db()
+        FloriographyService.load_from_csv()
         yield app.test_client()
         db.session.remove()
         db.drop_all()

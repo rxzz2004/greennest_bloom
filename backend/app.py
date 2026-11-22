@@ -24,6 +24,15 @@ def create_app(config_overrides=None):
     app.config.from_object(Config)
     if config_overrides:
         app.config.update(config_overrides)
+        if config_overrides.get("TESTING"):
+            Config.SIMULATE_SMTP = True
+
+    if app.config.get("SQLALCHEMY_DATABASE_URI") == "sqlite:///:memory:":
+        from sqlalchemy.pool import StaticPool
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "connect_args": {"check_same_thread": False},
+            "poolclass": StaticPool
+        }
 
     # Enable CORS for Vite frontend
     CORS(app, resources={r"/api/*": {"origins": "*"}})

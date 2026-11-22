@@ -74,6 +74,7 @@ class VenueClassifierService:
         top_std = top_stat.stddev[0]
         bot_std = bot_stat.stddev[0]
         overall_stat = ImageStat.Stat(grayscale)
+        overall_mean = overall_stat.mean[0]
         overall_std = overall_stat.stddev[0]
 
         # 3. Structural Edge & Perspective Line Analysis

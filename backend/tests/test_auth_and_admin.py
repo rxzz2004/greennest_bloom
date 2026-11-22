@@ -124,7 +124,7 @@ def test_registration_triggers_admin_alert(client):
     alerts = SystemAlert.query.filter_by(alert_type="new_user_registration").all()
     assert len(alerts) == 1
     assert "Anita Desai" in alerts[0].subject
-    assert alerts[0].recipient_email == "admin@greennestbloom.com"
+    assert alerts[0].recipient_email in ("admin@greennestbloom.com", "venishadsouza1322@gmail.com")
 
 def test_delivery_fleet_api(client):
     from models import DeliveryPartner

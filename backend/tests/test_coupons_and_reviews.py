@@ -24,7 +24,19 @@ def client():
             min_order_amount=200.0,
             is_active=True
         )
-        db.session.add_all([c1, c2])
+        p = Product(
+            id=1,
+            name="Dutch Red Velvet Roses",
+            category="cut_flower",
+            is_perishable=True,
+            base_price=55.0,
+            b2b_min_quantity=50,
+            b2b_discount_percent=15.0,
+            hsn_code="0603",
+            botanical_name="Rosa rubiginosa 'Red Naomi'",
+            vase_life_days=5
+        )
+        db.session.add_all([c1, c2, p])
         db.session.commit()
         yield app.test_client()
 

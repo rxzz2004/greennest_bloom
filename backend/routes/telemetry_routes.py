@@ -512,22 +512,26 @@ def complete_order_delivery(driver_id, order_id):
         driver.speed_kmh = 0.0
     driver.updated_at = datetime.utcnow()
 
+    order_number = order.order_number
+    driver_name = driver.full_name
+    shipping_addr = order.shipping_address
+    customer_email = order.user.email if order.user and order.user.email else "customer@greennestbloom.com"
+
     db.session.commit()
 
     # Dispatch delivery confirmation email to customer
     try:
-        customer_email = order.user.email if order.user and order.user.email else "customer@greennestbloom.com"
         AlertService.trigger_order_delivered_alert(
             customer_email=customer_email,
-            order_number=order.order_number,
-            driver_name=driver.full_name,
-            delivery_address=order.shipping_address
+            order_number=order_number,
+            driver_name=driver_name,
+            delivery_address=shipping_addr
         )
     except Exception as ex:
         print(f"[TelemetryRoutes] Delivery notification error: {ex}")
 
     return jsonify({
-        "message": f"Order #{order.order_number} marked as successfully delivered by {driver.full_name}.",
+        "message": f"Order #{order_number} marked as successfully delivered by {driver_name}.",
         "order": order.to_dict(),
         "driver": driver.to_dict()
     }), 200
