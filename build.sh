@@ -22,7 +22,7 @@ fi
 echo "Step 2: Installing Python backend dependencies..."
 python3 -m pip install --upgrade pip setuptools wheel
 python3 -m pip install -r requirements.txt
-python3 -m pip install psycopg2-binary
+python3 -m pip install "psycopg[binary]>=3.1.18" "psycopg2-binary>=2.9.9"
 
 echo "Step 3: Verifying backend database initialization..."
 python3 -c "

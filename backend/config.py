@@ -15,7 +15,9 @@ class Config:
     _raw_db_url = os.getenv("DATABASE_URL")
     if _raw_db_url:
         if _raw_db_url.startswith("postgres://"):
-            _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
+            _raw_db_url = _raw_db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+        elif _raw_db_url.startswith("postgresql://") and not _raw_db_url.startswith("postgresql+"):
+            _raw_db_url = _raw_db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
         SQLALCHEMY_DATABASE_URI = _raw_db_url
     else:
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{BASE_DIR / 'greennest_bloom.db'}"
